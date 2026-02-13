@@ -1,0 +1,90 @@
+[
+  {
+    "id": "aa737d50-5cee-408d-b667-26a38d586253",
+    "_id": "aa737d50-5cee-408d-b667-26a38d586253",
+    "name": "Test Verifier",
+    "email": "test1770990692922@example.com",
+    "password": "$2b$10$MC6PpkhEc8PHAISK0WfrdO6RbgsHtyvaSlKU6bDJSYSqsrJ5.6uVK",
+    "createdAt": "2026-02-13T13:51:33.055Z"
+  },
+  {
+    "id": "21309b8b-0be7-4082-876a-1d434c8fbf28",
+    "_id": "21309b8b-0be7-4082-876a-1d434c8fbf28",
+    "name": "Test Verifier",
+    "email": "test1770990733795@example.com",
+    "password": "$2b$10$E/RKihvouE9jGC2I/Ch1B.3NSdQCKTZHNxq9jm.6yR2QFUXP06wvq",
+    "createdAt": "2026-02-13T13:52:13.939Z"
+  },
+  {
+    "id": "e74c1a58-159a-4f50-b36c-02c27bd6848e",
+    "_id": "e74c1a58-159a-4f50-b36c-02c27bd6848e",
+    "name": "Test Verifier",
+    "email": "test1770990899684@example.com",
+    "password": "$2b$10$dQtk.rUJ3DaGJRRAtHMHluXn3CIB4BuW4j1M0JCjRh8mew9tut0je",
+    "createdAt": "2026-02-13T13:55:00.076Z"
+  },
+  {
+    "id": "3f3aafc2-7e49-4ee7-8d42-f42d63f193e3",
+    "_id": "3f3aafc2-7e49-4ee7-8d42-f42d63f193e3",
+    "name": "Test Verifier",
+    "email": "test1770991007450@example.com",
+    "password": "$2b$10$6D8/unjGdYW9WtKOm7gv0.KQKDV4eYa2ZTSL618TJbwCz.oRhidJ.",
+    "createdAt": "2026-02-13T13:56:47.628Z"
+  },
+  {
+    "id": "7f0d09e9-bbd5-40b4-a6a4-a045307f8a85",
+    "_id": "7f0d09e9-bbd5-40b4-a6a4-a045307f8a85",
+    "name": "Test CJS",
+    "email": "cjs@example.com",
+    "password": "hashedpassword",
+    "createdAt": "2026-02-13T13:58:43.914Z"
+  },
+  {
+    "id": "fa48796a-8cac-48c2-bc0b-3eb6763a6bdf",
+    "_id": "fa48796a-8cac-48c2-bc0b-3eb6763a6bdf",
+    "name": "Test Auth Logic",
+    "email": "auth_test@example.com",
+    "password": "$2b$10$Cf9JXSD7xdYBlK.5L7usauiDt0wa/Yn2.3zDloyp7yKlklRWoqLu2",
+    "createdAt": "2026-02-13T13:59:20.976Z"
+  },
+  {
+    "id": "91a2ffeb-7099-44da-ae46-542e4ec2b06a",
+    "_id": "91a2ffeb-7099-44da-ae46-542e4ec2b06a",
+    "name": " Druva",
+    "email": "cherkadruva@gmail.com",
+    "password": "$2b$10$K8NYP61TVnmUVNzi/Jrq1ujYBGvX35HovNNMsvjLJ6hsXaNMGI9j2",
+    "createdAt": "2026-02-13T14:02:36.514Z"
+  },
+  {
+    "id": "10dc0d33-6364-4d46-b6ac-61586df2f1fa",
+    "_id": "10dc0d33-6364-4d46-b6ac-61586df2f1fa",
+    "name": "sunill ",
+    "email": "sunilpatturi@gmail.com",
+    "password": "$2b$10$tCtFGkkNY7o/KWPKOTm21.4DCuKeZVd3RDgEXxEJywQaK2pHamrw.",
+    "createdAt": "2026-02-13T14:03:15.334Z"
+  },
+  {
+    "id": "2ca4693a-edd9-4823-8d2e-5affe3a40525",
+    "_id": "2ca4693a-edd9-4823-8d2e-5affe3a40525",
+    "name": "Test Verifier",
+    "email": "test1770991452684@example.com",
+    "password": "$2b$10$spv43PRrATzUVgqaZ4phueg5VB5D.fd1s8u/9qFVURaNJjP/7zoHe",
+    "createdAt": "2026-02-13T14:04:12.886Z"
+  },
+  {
+    "id": "a10f05de-f5e5-4897-a1da-7338d6c1483e",
+    "_id": "a10f05de-f5e5-4897-a1da-7338d6c1483e",
+    "name": "Test Verifier",
+    "email": "test1770991676582@example.com",
+    "password": "$2b$10$OUErHPgEzH27Ery4diKTx.KcDdZyznehMl2L2kG5.48AhoQ52m4fC",
+    "createdAt": "2026-02-13T14:07:56.716Z"
+  },
+  {
+    "id": "da2ca976-6f59-4c4d-b837-74e9b5ddcdf1",
+    "_id": "da2ca976-6f59-4c4d-b837-74e9b5ddcdf1",
+    "name": "abbi",
+    "email": "abhicherka2@gmail.com",
+    "password": "$2b$10$4dqhJzGqeJuGkTpDCKcDZOZHx9D/cu/7CO3Ke5DWp4xKtfOadZoCa",
+    "createdAt": "2026-02-13T14:22:13.665Z"
+  }
+]
