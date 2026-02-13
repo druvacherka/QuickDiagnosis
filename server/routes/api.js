@@ -2,6 +2,62 @@ const express = require('express');
 const router = express.Router();
 const mlService = require('../services/mlService');
 const mapsService = require('../services/mapsService');
+const { protect } = require('../middleware/authMiddleware');
+
+// @desc    Get user diagnosis history
+// @route   GET /api/history
+// @access  Private
+router.get('/history', protect, async (req, res) => {
+    try {
+        res.json(req.user.history);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// @desc    Add diagnosis entry to history
+// @route   POST /api/history
+// @access  Private
+router.post('/history', protect, async (req, res) => {
+    try {
+        const { prediction } = req.body;
+
+        if (!prediction) {
+            return res.status(400).json({ message: 'Prediction data required' });
+        }
+
+        const newEntry = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString(),
+            timestamp: new Date().toLocaleString(),
+            data: prediction
+        };
+
+        // Add to the beginning of the history
+        req.user.history = [newEntry, ...req.user.history].slice(0, 50);
+        await req.user.save();
+
+        res.status(201).json(newEntry);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// @desc    Clear user diagnosis history
+// @route   DELETE /api/history
+// @access  Private
+router.delete('/history', protect, async (req, res) => {
+    try {
+        req.user.history = [];
+        await req.user.save();
+        res.json({ message: 'History cleared' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 // GET /api/symptoms
 router.get('/symptoms', (req, res) => {

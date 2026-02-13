@@ -1,12 +1,12 @@
 const crypto = require('crypto');
 
-// Use environment variable or fallback to a default (not recommended for production)
-const SECRET_KEY = process.env.ENCRYPTION_KEY || 'default_32_chars_secret_key_12345';
 const ALGORITHM = 'aes-256-cbc';
+const DEFAULT_KEY = 'default_32_chars_secret_key_12345';
 
 // Helper to ensure key is 32 bytes
 const getKey = () => {
-    return crypto.createHash('sha256').update(SECRET_KEY).digest();
+    const key = process.env.ENCRYPTION_KEY || DEFAULT_KEY;
+    return crypto.createHash('sha256').update(key).digest();
 };
 
 const encrypt = (text) => {

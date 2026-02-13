@@ -11,6 +11,8 @@ const Register = () => {
         email: '',
         password: '',
         confirmPassword: '',
+        securityQuestion: 'What was your first pet\'s name?',
+        securityAnswer: '',
         age: '',
         gender: 'select',
         history: false
@@ -29,9 +31,19 @@ const Register = () => {
             alert("Please fill in all fields");
             return;
         }
-        if (step === 2 && (!formData.password || formData.password !== formData.confirmPassword)) {
-            alert("Please check your passwords");
-            return;
+        if (step === 2) {
+            if (!formData.password || formData.password !== formData.confirmPassword) {
+                alert("Please check your passwords");
+                return;
+            }
+            if (formData.password.length < 8) {
+                alert("Password must be at least 8 characters");
+                return;
+            }
+            if (!formData.securityAnswer) {
+                alert("Please provide an answer to your security question");
+                return;
+            }
         }
         setStep(prev => prev + 1);
     };
@@ -46,7 +58,9 @@ const Register = () => {
             const userData = {
                 name: formData.name,
                 email: formData.email,
-                password: formData.password
+                password: formData.password,
+                securityQuestion: formData.securityQuestion,
+                securityAnswer: formData.securityAnswer
             };
             const response = await registerUser(userData);
 
@@ -132,6 +146,39 @@ const Register = () => {
                                     className="input-field"
                                     style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0' }}
                                     value={formData.confirmPassword} onChange={handleChange} required
+                                />
+                            </div>
+                        </div>
+
+                        <hr style={{ border: 'none', borderTop: '1px solid #f1f5f9', margin: '1.5rem 0' }} />
+
+                        <div className="mb-4">
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.9rem' }}>Security Question</label>
+                            <select
+                                name="securityQuestion"
+                                className="input-field"
+                                style={{ background: '#f8fafc', borderColor: '#e2e8f0' }}
+                                value={formData.securityQuestion} onChange={handleChange}
+                            >
+                                <option value="What was your first pet's name?">What was your first pet's name?</option>
+                                <option value="In what city were you born?">In what city were you born?</option>
+                                <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                                <option value="What was the name of your first school?">What was the name of your first school?</option>
+                            </select>
+                            <small style={{ color: 'var(--text-light)', marginTop: '0.25rem', display: 'block' }}>Used for self-service password recovery</small>
+                        </div>
+
+                        <div className="mb-4">
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.9rem' }}>Your Answer</label>
+                            <div style={{ position: 'relative' }}>
+                                <ShieldCheck size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                <input
+                                    type="text" name="securityAnswer"
+                                    placeholder="Answer to your question"
+                                    className="input-field"
+                                    style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0' }}
+                                    value={formData.securityAnswer} onChange={handleChange} required
                                 />
                             </div>
                         </div>

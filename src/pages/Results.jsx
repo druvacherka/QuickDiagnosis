@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle, Stethoscope, MapPin, Activity, ArrowLeft, AlertCircle } from 'lucide-react';
+import { saveToHistory } from '../services/api';
 
 const Results = () => {
     const location = useLocation();
@@ -8,7 +9,12 @@ const Results = () => {
 
     useEffect(() => {
         if (prediction) {
-            const history = JSON.parse(localStorage.getItem('diagnosis_history')) || [];
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) return;
+
+            const historyKey = `diagnosis_history_${user._id}`;
+            const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+
             const latestEntry = {
                 id: Date.now(),
                 date: new Date().toLocaleDateString(),
@@ -16,9 +22,13 @@ const Results = () => {
                 data: prediction
             };
 
+            // 1. Sync to Backend
+            saveToHistory(prediction).catch(err => console.error("Failed to sync to backend:", err));
+
+            // 2. Update Local Scoped Cache
             if (history.length === 0 || JSON.stringify(history[0].data) !== JSON.stringify(prediction)) {
                 const updatedHistory = [latestEntry, ...history].slice(0, 50);
-                localStorage.setItem('diagnosis_history', JSON.stringify(updatedHistory));
+                localStorage.setItem(historyKey, JSON.stringify(updatedHistory));
             }
         }
     }, [prediction]);

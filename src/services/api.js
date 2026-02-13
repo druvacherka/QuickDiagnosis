@@ -7,6 +7,20 @@ const api = axios.create({
     },
 });
 
+// Add a request interceptor to attach the JWT token
+api.interceptors.request.use(
+    (config) => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.token) {
+            config.headers.Authorization = `Bearer ${user.token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
 export const predictDisease = async (symptoms) => {
     try {
         const response = await api.post('/predict', { symptoms });
@@ -43,6 +57,37 @@ export const getSymptoms = async () => {
         return response.data;
     } catch (error) {
         console.error('Get Symptoms API Error:', error);
+        throw error;
+    }
+};
+
+// History API Methods
+export const getHistory = async () => {
+    try {
+        const response = await api.get('/history');
+        return response.data;
+    } catch (error) {
+        console.error('Get History API Error:', error);
+        throw error;
+    }
+};
+
+export const saveToHistory = async (prediction) => {
+    try {
+        const response = await api.post('/history', { prediction });
+        return response.data;
+    } catch (error) {
+        console.error('Save to History API Error:', error);
+        throw error;
+    }
+};
+
+export const clearHistory = async () => {
+    try {
+        const response = await api.delete('/history');
+        return response.data;
+    } catch (error) {
+        console.error('Clear History API Error:', error);
         throw error;
     }
 };

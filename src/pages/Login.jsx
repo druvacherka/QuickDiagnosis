@@ -5,13 +5,15 @@ import { loginUser } from '../services/api';
 
 const Login = () => {
     console.log("Login component rendering...");
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [showPassword, setShowPassword] = React.useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
             const response = await loginUser({ email, password });
 
@@ -22,6 +24,8 @@ const Login = () => {
             window.location.reload(); // Force refresh to update Navbar
         } catch (error) {
             alert(error.response?.data?.message || "Login failed. Please check your credentials.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -92,11 +96,13 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
-                        <a href="#" style={{ fontSize: '0.9rem', color: 'var(--primary-color)', fontWeight: 500 }}>Forgot Password?</a>
+                    <div className="form-group" style={{ textAlign: 'right', marginTop: '-0.5rem' }}>
+                        <Link to="/forgot-password" style={{ color: 'var(--primary-color)', fontSize: '0.875rem', textDecoration: 'none' }}>
+                            Forgot Password?
+                        </Link>
                     </div>
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem' }}>
+                    <button type="submit" className="btn btn-primary w-full" disabled={isLoading} style={{ marginTop: '1rem' }}>
                         Sign In
                     </button>
                 </form>

@@ -10,6 +10,8 @@ import Results from './pages/Results';
 import Doctors from './pages/Doctors';
 import Hospitals from './pages/Hospitals';
 import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Simple protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -27,6 +29,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={

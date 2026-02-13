@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, MapPin, Clock, ChevronRight, AlertCircle } from 'lucide-react';
+import { getHistory, clearHistory as clearHistoryAPI } from '../services/api';
 
 const Dashboard = () => {
     const [user, setUser] = useState({ name: 'Guest' });
@@ -8,10 +9,20 @@ const Dashboard = () => {
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser) setUser(storedUser);
+        if (storedUser) {
+            setUser(storedUser);
 
-        const storedHistory = JSON.parse(localStorage.getItem('diagnosis_history')) || [];
-        setHistory(storedHistory);
+            // 1. Initial load from User-Scoped Local Storage
+            const historyKey = `diagnosis_history_${storedUser._id}`;
+            const localHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
+            setHistory(localHistory);
+
+            // 2. Refresh from Backend
+            getHistory().then(data => {
+                setHistory(data);
+                localStorage.setItem(historyKey, JSON.stringify(data));
+            }).catch(err => console.error("History fetch error:", err));
+        }
     }, []);
 
     const getPrimaryDiagnosis = (data) => {
@@ -110,7 +121,21 @@ const Dashboard = () => {
                         </div>
                         {history.length > 0 && (
                             <button
-                                onClick={() => { localStorage.removeItem('diagnosis_history'); setHistory([]); }}
+                                onClick={async () => {
+                                    const confirmClear = window.confirm("Are you sure you want to clear your diagnosis history?");
+                                    if (!confirmClear) return;
+
+                                    try {
+                                        await clearHistoryAPI();
+                                        const historyKey = `diagnosis_history_${user._id}`;
+                                        localStorage.removeItem(historyKey);
+                                        setHistory([]);
+                                    } catch (err) {
+                                        console.error("Failed to clear history:", err);
+                                        alert("Failed to clear history from server, but local view updated.");
+                                        setHistory([]);
+                                    }
+                                }}
                                 style={{ background: 'none', border: 'none', color: 'var(--danger-color)', fontSize: '0.85rem', cursor: 'pointer', padding: '0.5rem' }}
                             >
                                 Clear History
