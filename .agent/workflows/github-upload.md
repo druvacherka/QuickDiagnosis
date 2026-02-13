@@ -32,6 +32,16 @@ Follow these steps to upload your project to GitHub:
    git push -u origin main
    ```
 
+### 💡 Troubleshooting: Push Rejected (Initial Upload)
+If you see `[rejected] main -> main (non-fast-forward)`, it's safest for a **new project** to simply force your local code to be the primary version on GitHub.
+
+**Run this command to overwrite the remote repository with your local code:**
+```powershell
+git push -u origin main --force
+```
+
+*Note: Use `--force` only for the first upload or when you are the only one working on the repo.*
+
 // turbo-all
 5. **Verification**
    Refresh your GitHub page to see your code online.

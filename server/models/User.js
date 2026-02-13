@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { encrypt, decrypt } = require('../services/encryptionService');
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'users.json');
@@ -22,15 +23,29 @@ class User {
         this.id = data.id || data._id || generateId();
         this._id = this.id; // Alias for Mongoose compatibility
         this.name = data.name;
-        this.email = data.email;
-        this.password = data.password;
+        // Decrypt email and password when loading into the application
+        this.email = decrypt(data.email);
+        this.password = decrypt(data.password);
         this.createdAt = data.createdAt || new Date();
+    }
+
+    // Helper to get raw data for saving (encrypted)
+    toRaw() {
+        return {
+            id: this.id,
+            _id: this._id,
+            name: this.name,
+            email: encrypt(this.email),
+            password: encrypt(this.password),
+            createdAt: this.createdAt
+        };
     }
 
     static async findOne({ email }) {
         try {
             const users = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-            const user = users.find(u => u.email === email);
+            // Decrypt each user's email to find a match
+            const user = users.find(u => decrypt(u.email) === email);
             return user ? new User(user) : null;
         } catch (error) {
             console.error("Error reading users DB:", error);
@@ -40,17 +55,14 @@ class User {
 
     static async create(userData) {
         try {
-            console.log("Reading users DB from:", DB_FILE);
             const data = fs.readFileSync(DB_FILE, 'utf8');
-            console.log("DB content length:", data.length);
             const users = JSON.parse(data);
 
             const newUser = new User(userData);
-            users.push(newUser);
+            // Save the encrypted version to the file
+            users.push(newUser.toRaw());
 
-            console.log("Writing to users DB...");
             fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
-            console.log("Write successful");
 
             return newUser;
         } catch (error) {
