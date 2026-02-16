@@ -63,206 +63,73 @@ const saveModelToDisk = () => {
 };
 
 /**
- * Loads the dataset into memory.
+ * Executes the Python training script to generate the Random Forest model.
  */
 const trainModel = () => {
     return new Promise((resolve, reject) => {
-        if (loadModelFromDisk()) {
+        console.log('Starting ML Model Training (Random Forest)...');
+
+        try {
+            const pythonProcess = spawnSync('python', [
+                path.join(__dirname, 'train.py')
+            ]);
+
+            if (pythonProcess.error) {
+                console.error('Python training execution error:', pythonProcess.error);
+                return reject(new Error('Failed to run Python training script'));
+            }
+
+            const stderr = pythonProcess.stderr.toString();
+            if (stderr && !stderr.includes('UserWarning') && !stderr.includes('FutureWarning')) {
+                console.warn('Python training warnings/errors:', stderr);
+            }
+
+            const stdout = pythonProcess.stdout.toString();
+            console.log('Python training output:', stdout);
+
+            isTrained = true;
+            console.log('Random Forest model trained and saved successfully.');
             resolve();
-            return;
+        } catch (error) {
+            console.error('Error during trainModel (Python bridge):', error);
+            reject(error);
         }
-
-        console.log('Loading dataset from:', DATA_PATH);
-        trainingData = [];
-        symptomsList = new Set();
-
-        const validSymptoms = new Set();
-        let headersProcessed = false;
-
-        const stream = fs.createReadStream(DATA_PATH)
-            .pipe(csv());
-
-        stream.on('headers', (headers) => {
-            if (headersProcessed) return;
-            headers.forEach(header => {
-                if (header !== 'prognosis' && header.trim() !== '') {
-                    validSymptoms.add(header);
-                    symptomsList.add(header);
-                }
-            });
-            console.log('Schema detected: ' + validSymptoms.size + ' valid symptoms.');
-            headersProcessed = true;
-        });
-
-        stream.on('data', (row) => {
-            const currentSymptoms = new Set();
-            let disease = '';
-
-            for (const [key, value] of Object.entries(row)) {
-                if (key === 'prognosis') {
-                    disease = value;
-                } else if (value === '1' && validSymptoms.has(key)) {
-                    currentSymptoms.add(key);
-                }
-            }
-
-            if (disease && currentSymptoms.size > 0) {
-                trainingData.push({
-                    disease: disease,
-                    symptoms: currentSymptoms
-                });
-            }
-        })
-            .on('end', () => {
-                console.log('Dataset loaded. Indexed ' + trainingData.length + ' records.');
-                isTrained = true;
-                saveModelToDisk();
-                resolve();
-            })
-            .on('error', (err) => {
-                reject(err);
-            });
     });
 };
 
+const { spawnSync } = require('child_process');
+
 /**
  * Predicts disease based on symptom similarity.
- * Uses Jaccard Similarity and frequency modulation.
+ * Calls the Python version of the prediction script.
  */
 const predictDisease = (userSymptoms) => {
     if (!isTrained) throw new Error('Model not loaded');
 
-    const inputSymptoms = new Set(userSymptoms);
-    const diseaseScores = new Map(); // disease -> accumlated score
-    const diseaseCounts = new Map(); // disease -> count of matching records
+    try {
+        const pythonProcess = spawnSync('python', [
+            path.join(__dirname, 'predict.py'),
+            DATA_PATH,
+            JSON.stringify(userSymptoms)
+        ]);
 
-    // COMPARE INPUT AGAINST ALL RECORDS
-    trainingData.forEach(record => {
-        // Count shared symptoms
-        let matches = 0;
-        record.symptoms.forEach(s => {
-            if (inputSymptoms.has(s)) matches++;
-        });
-
-        if (matches > 0) {
-            // Jaccard Index: matches / (len(A) + len(B) - matches)
-            const union = record.symptoms.size + inputSymptoms.size - matches;
-            const jaccard = matches / union;
-
-            // Recall: How many of *my* symptoms are explained by this disease?
-            // (matches / len(Input))
-            const recall = matches / inputSymptoms.size;
-
-            // Precision: How many of *the disease's* symptoms do I actually have?
-            // (matches / len(Disease))
-            const precision = matches / record.symptoms.size;
-
-            // Balanced Score:
-            const score = (recall * 0.5) + (precision * 0.5);
-
-            const current = diseaseScores.get(record.disease) || 0;
-            // Keep the maximum score found for this disease across multiple records
-            if (score > current) {
-                diseaseScores.set(record.disease, score);
-            }
-        }
-    });
-
-    // Format Results
-    const predictions = [];
-    diseaseScores.forEach((score, disease) => {
-        predictions.push({
-            disease: disease,
-            score: score
-        });
-    });
-
-    // Sort by score descending
-    predictions.sort((a, b) => b.score - a.score);
-
-    // Limit to Top 3
-    const topResults = predictions.slice(0, 3);
-
-    const finalResults = topResults.map(item => {
-        // Decrease score by random 5% - 8% as requested
-        const penalty = Math.random() * (0.08 - 0.05) + 0.05;
-        let p = item.score - penalty;
-        if (p < 0) p = 0;
-        return {
-            disease: item.disease,
-            probability: p
-        };
-    });
-
-    // FOLLOW-UP LOGIC
-    // Check if the top candidate needs clarification
-    let followUp = null;
-    if (finalResults.length > 0) {
-        let involvedDiseases = new Set();
-        let potentialMissing = new Set();
-
-        // Check top 5 results to see if we have partial matches for multiple diseases
-        for (const result of finalResults.slice(0, 5)) {
-            const diseaseName = result.disease;
-
-            // Find the best matching record for this specific disease
-            let bestRecord = null;
-            let maxMatches = -1;
-
-            for (const record of trainingData) {
-                if (record.disease === diseaseName) {
-                    let m = 0;
-                    record.symptoms.forEach(s => {
-                        if (inputSymptoms.has(s)) m++;
-                    });
-
-                    if (m > maxMatches) {
-                        maxMatches = m;
-                        bestRecord = record;
-                    }
-                }
-            }
-
-            if (bestRecord) {
-                const totalSymptoms = bestRecord.symptoms.size;
-                const matchRatio = maxMatches / totalSymptoms;
-
-                // User Rule: "if user enters n/2 or more... ask follow up"
-                // So if >= 50% match, we consider it a candidate for questioning
-                if (matchRatio >= 0.5 && matchRatio < 1.0) {
-                    bestRecord.symptoms.forEach(s => {
-                        if (!inputSymptoms.has(s)) {
-                            potentialMissing.add(s);
-                        }
-                    });
-                    involvedDiseases.add(diseaseName);
-                }
-            }
+        if (pythonProcess.error) {
+            console.error('Python execution error:', pythonProcess.error);
+            throw new Error('Failed to run Python prediction');
         }
 
-        if (potentialMissing.size > 0) {
-            const uniqueMissing = Array.from(potentialMissing);
-            const diseasesStr = Array.from(involvedDiseases).join(', ');
-
-            followUp = {
-                disease: diseasesStr,
-                missingSymptoms: uniqueMissing,
-                question: `Patients with ${diseasesStr} often experience these symptoms.`
-            };
+        const output = pythonProcess.stdout.toString();
+        if (!output) {
+            console.error('Python script returned no output');
+            console.error('Stderr:', pythonProcess.stderr.toString());
+            throw new Error('Prediction script failed');
         }
+
+        return JSON.parse(output);
+    } catch (error) {
+        console.error('Error in predictDisease (Python bridge):', error);
+        throw error;
     }
-
-    // Return object wrapper
-    const response = {
-        predictions: finalResults,
-        followUp: followUp
-    };
-
-    if (finalResults.length > 0) {
-        console.log('Prediction: ' + finalResults[0].disease + (followUp ? ' (Follow-up required)' : ''));
-    }
-
-    return response;
 };
 
 const getSymptoms = () => {
