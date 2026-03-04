@@ -31,9 +31,9 @@ export const predictDisease = async (symptoms) => {
     }
 };
 
-export const getNearbyPlaces = async (lat, lng, type = 'hospital') => {
+export const getNearbyPlaces = async (lat, lng, type = 'hospital', disease = '') => {
     try {
-        const response = await api.post('/nearby', { lat, lng, type });
+        const response = await api.post('/nearby', { lat, lng, type, disease });
         return response.data;
     } catch (error) {
         console.error('Nearby API Error:', error);

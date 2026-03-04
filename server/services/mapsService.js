@@ -1,117 +1,157 @@
 const axios = require('axios');
 
-const GOOGLE_PLACES_API_URL = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
-const GOOGLE_GEOCODING_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
+// OpenStreetMap API URLs
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+const OVERPASS_MIRROR = 'https://overpass.kumi.systems/api/interpreter';
 
 /**
- * Deduplicates an array of places based on place_id and fuzzy matching of name/address.
- * @param {Array} places 
- * @returns {Array} unique places
+ * Deduplicates an array of places based on osm_id and fuzzy matching.
  */
 const deduplicatePlaces = (places) => {
-    const seenPlaceIds = new Set();
-    const seenNameAddress = new Set();
+    const seenIds = new Set();
     const uniquePlaces = [];
 
     for (const place of places) {
-        // 1. Check place_id
-        if (seenPlaceIds.has(place.place_id)) continue;
-        seenPlaceIds.add(place.place_id);
-
-        // 2. Check name + address combination (simple fuzzy match key)
-        // Normalize: remove spaces, lowercase
-        const name = (place.name || '').toLowerCase().replace(/\s/g, '');
-        const address = (place.vicinity || '').toLowerCase().replace(/\s/g, '');
-        const key = `${name}|${address}`;
-
-        if (seenNameAddress.has(key)) continue;
-        seenNameAddress.add(key);
-
+        if (seenIds.has(place.id)) continue;
+        seenIds.add(place.id);
         uniquePlaces.push(place);
     }
 
     return uniquePlaces;
 };
 
-const getNearbyPlaces = async (lat, lng, type = 'hospital', apiKey) => {
+/**
+ * Fetch nearby hospitals or specialists using the Overpass API (Free OSM).
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @param {string} type - 'hospital' or 'doctor'
+ * @param {string} unused_apiKey - (Kept for compatibility)
+ * @param {string} specialty - Optional medical specialty (e.g., 'dermatology', 'cardiologist')
+ */
+const getNearbyPlaces = async (lat, lng, type = 'hospital', unused_apiKey, specialty = '') => {
     try {
-        // Fetch hospitals/doctors. 'type' can be 'hospital' or 'doctor' (mapped to 'doctor' in API? actually 'doctor' is a type).
         const radius = 5000; // 5km
-        const response = await axios.get(GOOGLE_PLACES_API_URL, {
-            params: {
-                location: `${lat},${lng}`,
-                radius: radius,
-                type: type,
-                key: apiKey
-            }
-        });
 
-        if (response.data.status !== 'OK' && response.data.status !== 'ZERO_RESULTS') {
-            console.error('Google Places API Error:', response.data);
-            throw new Error(response.data.error_message || 'Failed to fetch places');
+        // Added [timeout:25] for reliability on community-run servers
+        let queryBody = `[out:json][timeout:25];`;
+
+        if (type === 'hospital') {
+            queryBody += `
+                (
+                  node["amenity"="hospital"](around:${radius},${lat},${lng});
+                  way["amenity"="hospital"](around:${radius},${lat},${lng});
+                  node["healthcare"="hospital"](around:${radius},${lat},${lng});
+                );
+                out center;`;
+        } else {
+            // Searching for doctors/specialists with genetic fallback
+            const specialtyTag = specialty ? `["speciality"~"${specialty}",i]` : '';
+            queryBody += `
+                (
+                  node["amenity"="doctors"]${specialtyTag}(around:${radius},${lat},${lng});
+                  node["healthcare"="doctor"]${specialtyTag}(around:${radius},${lat},${lng});
+                  node["healthcare"="specialist"]${specialtyTag}(around:${radius},${lat},${lng});
+                  node["amenity"="doctors"](around:${radius},${lat},${lng}); // Generic fallback
+                );
+                out center;`;
         }
 
-        const results = response.data.results || [];
-        const cleanResults = deduplicatePlaces(results);
+        const fetchFromOverpass = async (url) => {
+            return axios.post(url, `data=${encodeURIComponent(queryBody)}`, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'QuickDiagnosisApp/1.0'
+                },
+                timeout: 30000 // 30 sec axios timeout
+            });
+        };
 
-        // Sort by distance (geometry calculation roughly, or let API do it with rankby=distance but that ignores radius)
-        // For now, we trust the API or simple sort if we had exact coords, but the API search nearby typically returns roughly by prominence usually unless specified.
-        // User requested "Sort results strictly by distance".
-        // 'rankby=distance' requires 'name' or 'type' and NO 'radius'.
+        let response;
+        try {
+            response = await fetchFromOverpass(OVERPASS_URL);
+        } catch (e) {
+            console.warn(`Primary Overpass API failed (${e.message}), trying mirror...`);
+            response = await fetchFromOverpass(OVERPASS_MIRROR);
+        }
 
-        // Let's do a second call if strict distance is critical, OR just compute distance from lat/lng for these results.
-        // Computing distance locally is safer and preserves the radius filter.
+        const elements = response.data.elements || [];
 
-        cleanResults.forEach(place => {
-            const pLat = place.geometry.location.lat;
-            const pLng = place.geometry.location.lng;
-            place.distance = getDistanceFromLatLonInKm(lat, lng, pLat, pLng);
+        // Map Overpass results to a consistent format
+        const results = elements.map(el => {
+            const latitude = el.lat || (el.center && el.center.lat);
+            const longitude = el.lon || (el.center && el.center.lon);
+            const name = el.tags.name || 'Unnamed Medical Facility';
+
+            return {
+                place_id: `osm_${el.id}`,
+                id: el.id,
+                name: name,
+                vicinity: el.tags['addr:full'] || el.tags['addr:street'] || el.tags['addr:city'] || 'Nearby',
+                geometry: {
+                    location: {
+                        lat: latitude,
+                        lng: longitude
+                    }
+                },
+                types: [type],
+                rating: 0,
+                distance: getDistanceFromLatLonInKm(lat, lng, latitude, longitude)
+            };
         });
 
+        const cleanResults = deduplicatePlaces(results);
         cleanResults.sort((a, b) => a.distance - b.distance);
 
         return cleanResults;
 
     } catch (error) {
-        console.error('Error in getNearbyPlaces:', error.message);
-        throw error;
+        console.error('Error in OSM getNearbyPlaces:', error.message);
+        return [];
     }
 };
 
-const getCoordinates = async (address, apiKey) => {
+/**
+ * Geocodes an address into latitude and longitude using Nominatim (Free OSM).
+ */
+const getCoordinates = async (address, unused_apiKey) => {
     try {
-        const response = await axios.get(GOOGLE_GEOCODING_API_URL, {
+        const response = await axios.get(NOMINATIM_URL, {
             params: {
-                address: address,
-                key: apiKey
+                q: address,
+                format: 'json',
+                limit: 1
+            },
+            headers: {
+                'User-Agent': 'QuickDiagnosisApp/1.0'
             }
         });
 
-        if (response.data.status !== 'OK') {
-            throw new Error(response.data.error_message || 'Failed to geocode address');
+        if (!response.data || response.data.length === 0) {
+            throw new Error('Address not found');
         }
 
-        const location = response.data.results[0].geometry.location;
-        return { lat: location.lat, lng: location.lng };
+        const result = response.data[0];
+        return {
+            lat: parseFloat(result.lat),
+            lng: parseFloat(result.lon)
+        };
     } catch (error) {
-        console.error('Error in getCoordinates:', error.message);
+        console.error('Error in OSM getCoordinates:', error.message);
         throw error;
     }
 };
 
-// Haversine formula for distance
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-    var R = 6371; // Radius of the earth in km
-    var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+    var R = 6371;
+    var dLat = deg2rad(lat2 - lat1);
     var dLon = deg2rad(lon2 - lon1);
     var a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        ;
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c; // Distance in km
-    return d;
+    return R * c;
 }
 
 function deg2rad(deg) {

@@ -1,8 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { MapPin, Phone, Navigation, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Phone, Navigation, AlertCircle, Info } from 'lucide-react';
 import { getNearbyPlaces, getCoordinates } from '../services/api';
+import { useLocation } from 'react-router-dom';
 
 const Hospitals = () => {
+    const location = useLocation();
+    const { disease } = location.state || {};
+
     const [hospitals, setHospitals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -10,41 +14,61 @@ const Hospitals = () => {
     const [userAddress, setUserAddress] = useState('Detecting location...');
 
     useEffect(() => {
+        let isMounted = true;
         const fetchHospitals = async () => {
             try {
+                if (!isMounted) return;
                 setLoading(true);
-                // Simple Geolocation access
+                setError(null);
+
                 if (navigator.geolocation) {
+                    // 10 second timeout for geolocation detection
+                    const geoTimeout = setTimeout(() => {
+                        if (isMounted && loading) {
+                            setError("Location detection is taking a while. You can enter your location manually.");
+                            setLoading(false);
+                        }
+                    }, 10000);
+
                     navigator.geolocation.getCurrentPosition(async (position) => {
+                        clearTimeout(geoTimeout);
+                        if (!isMounted) return;
                         const { latitude, longitude } = position.coords;
                         setUserLocation({ lat: latitude, lng: longitude });
-                        setUserAddress("Your Current Location"); // Or reverse geocode if needed
+                        setUserAddress("Your Current Location");
 
-                        const data = await getNearbyPlaces(latitude, longitude, 'hospital');
-                        setHospitals(data);
-                        setLoading(false);
+                        try {
+                            const data = await getNearbyPlaces(latitude, longitude, 'hospital', disease);
+                            if (isMounted) setHospitals(data);
+                        } catch (apiErr) {
+                            if (isMounted) setError("Failed to connect to search service.");
+                        } finally {
+                            if (isMounted) setLoading(false);
+                        }
                     }, async (geoError) => {
+                        clearTimeout(geoTimeout);
+                        if (!isMounted) return;
                         console.warn("Geolocation denied/failed:", geoError);
-                        setError("Location permission denied. Showing default results.");
-                        // Fallback or ask user (simplified for now as per instructions "Ask user to manually enter" - handling that via minimal UI if possible, or defaulting)
-                        // For auto-fetch flow, we'll try default or show empty
+                        setError("Could not detect location automatically.");
                         setLoading(false);
-                    });
+                    }, { timeout: 10000 }); // Browser-level timeout
                 } else {
-                    setError("Geolocation not supported.");
+                    setError("Geolocation not supported by your browser.");
                     setLoading(false);
                 }
             } catch (err) {
                 console.error(err);
-                setError("Failed to fetch hospitals.");
-                setLoading(false);
+                if (isMounted) {
+                    setError("An unexpected error occurred.");
+                    setLoading(false);
+                }
             }
         };
 
         fetchHospitals();
-    }, []);
+        return () => { isMounted = false; };
+    }, [disease]);
 
-    // Manual address handler (optional if error)
     const handleManualLocation = async () => {
         const address = prompt("Enter your city/address:");
         if (address) {
@@ -53,7 +77,7 @@ const Hospitals = () => {
                 const coords = await getCoordinates(address);
                 setUserLocation(coords);
                 setUserAddress(address);
-                const data = await getNearbyPlaces(coords.lat, coords.lng, 'hospital');
+                const data = await getNearbyPlaces(coords.lat, coords.lng, 'hospital', disease);
                 setHospitals(data);
                 setError(null);
             } catch (err) {
@@ -74,11 +98,44 @@ const Hospitals = () => {
                     </button>
                 </div>
 
-                {loading && <p>Loading nearby hospitals...</p>}
-                {error && <p style={{ color: 'red' }}>{error}</p>}
+                {loading && <p>Searching for hospitals near you...</p>}
+                {error && (
+                    <div style={{ color: '#b91c1c', background: '#fef2f2', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #fecaca' }}>
+                        <p style={{ margin: 0, fontWeight: 500 }}>{error}</p>
+                        <button onClick={handleManualLocation} className="btn btn-secondary" style={{ marginTop: '0.5rem', padding: '4px 12px', fontSize: '0.8rem' }}>
+                            Enter Address Manually
+                        </button>
+                    </div>
+                )}
+
+                {/* Specialty Indicator */}
+                {disease && !loading && !error && (
+                    <div style={{
+                        marginBottom: '1.5rem',
+                        padding: '1rem',
+                        backgroundColor: '#f0f9ff',
+                        border: '1px solid #bae6fd',
+                        borderRadius: 'var(--border-radius-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        color: '#0369a1'
+                    }}>
+                        <Info size={18} />
+                        <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                            Showing hospitals recommended for <strong>{disease}</strong>
+                        </span>
+                    </div>
+                )}
 
                 {!loading && !error && hospitals.length === 0 && (
-                    <p>No data available yet.</p>
+                    <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+                        <MapPin size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                        <p>No medical facilities found in this area. Try searching for a larger city.</p>
+                        <button onClick={handleManualLocation} className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                            Search Another Location
+                        </button>
+                    </div>
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -87,15 +144,6 @@ const Hospitals = () => {
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <h3 style={{ margin: 0 }}>{hospital.name}</h3>
-                                    {/* Google Places doesn't strictly have 'emergency' bool in basic list, relying on types if needed */}
-                                    {hospital.opening_hours?.open_now && (
-                                        <span style={{
-                                            backgroundColor: '#dcfce7', color: '#166534', fontSize: '0.75rem',
-                                            padding: '2px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px'
-                                        }}>
-                                            Open Now
-                                        </span>
-                                    )}
                                 </div>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '0.5rem 0' }}>{hospital.vicinity}</p>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -103,7 +151,7 @@ const Hospitals = () => {
                                         backgroundColor: '#f1f5f9', color: 'var(--text-secondary)',
                                         fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px'
                                     }}>
-                                        Rating: {hospital.rating || 'N/A'}
+                                        Nearby
                                     </span>
                                 </div>
                             </div>
@@ -113,7 +161,7 @@ const Hospitals = () => {
                                     {hospital.distance ? `${hospital.distance.toFixed(1)} km` : ''}
                                 </span>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button className="btn btn-primary" style={{ padding: '0.5rem' }} title="View on Map" onClick={() => window.open(`https://www.google.com/maps/place/?q=place_id:${hospital.place_id}`, '_blank')}>
+                                    <button className="btn btn-primary" style={{ padding: '0.5rem' }} title="View on Map" onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${hospital.geometry.location.lat}&mlon=${hospital.geometry.location.lng}#map=16/${hospital.geometry.location.lat}/${hospital.geometry.location.lng}`, '_blank')}>
                                         <Navigation size={18} />
                                     </button>
                                 </div>
@@ -127,7 +175,7 @@ const Hospitals = () => {
                 <div style={{ backgroundColor: '#e5e7eb', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
                     <div className="text-center">
                         <MapPin size={48} />
-                        <p>Map Integration Coming Soon</p>
+                        <p>Map View Available on Click</p>
                     </div>
                 </div>
                 <div style={{ padding: '1rem' }}>

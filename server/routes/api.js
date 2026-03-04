@@ -97,29 +97,28 @@ router.post('/predict', async (req, res) => {
     }
 });
 
+const diseaseSpecialtyMap = require('../config/specialties');
+
 // POST /api/nearby
 router.post('/nearby', async (req, res) => {
     try {
-        const { lat, lng, type } = req.body;
-        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-
-        if (!apiKey) {
-            console.error('GOOGLE_MAPS_API_KEY is not set.');
-            return res.status(500).json({ error: 'Server configuration error.' });
-        }
+        const { lat, lng, type, disease } = req.body;
 
         if (!lat || !lng) {
             return res.status(400).json({ error: 'Latitude (lat) and Longitude (lng) are required.' });
         }
 
-        // Default to 'hospital' if type not provided
-        const searchType = type || 'hospital';
-        const results = await mapsService.getNearbyPlaces(lat, lng, searchType, apiKey);
+        // Map disease to specialty for precision search
+        const specialty = disease && diseaseSpecialtyMap[disease] ? diseaseSpecialtyMap[disease] : '';
+        console.log(`Searching for ${type} related to ${disease || 'general'} (Specialty: ${specialty || 'None'})`);
+
+        // OSM Service doesn't require an API Key
+        const results = await mapsService.getNearbyPlaces(lat, lng, type || 'hospital', null, specialty);
 
         res.json(results);
 
     } catch (error) {
-        console.error('Nearby search error:', error);
+        console.error('Nearby search error (OSM):', error);
         res.status(500).json({ error: 'Failed to fetch nearby places.' });
     }
 });
@@ -128,22 +127,17 @@ router.post('/nearby', async (req, res) => {
 router.post('/geocode', async (req, res) => {
     try {
         const { address } = req.body;
-        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-
-        if (!apiKey) {
-            console.error('GOOGLE_MAPS_API_KEY is not set.');
-            return res.status(500).json({ error: 'Server configuration error.' });
-        }
 
         if (!address) {
             return res.status(400).json({ error: 'Address is required.' });
         }
 
-        const coordinates = await mapsService.getCoordinates(address, apiKey);
+        // OSM Service doesn't require an API Key
+        const coordinates = await mapsService.getCoordinates(address, null);
         res.json(coordinates);
 
     } catch (error) {
-        console.error('Geocoding error:', error);
+        console.error('Geocoding error (OSM):', error);
         res.status(500).json({ error: 'Failed to geocode address.' });
     }
 });

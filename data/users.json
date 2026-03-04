@@ -107,5 +107,97 @@
     "resetToken": null,
     "resetTokenExpire": null,
     "createdAt": "2026-02-13T16:34:22.017Z"
+  },
+  {
+    "id": "4860ad38-07eb-480b-9ad4-38b0a464621a",
+    "_id": "4860ad38-07eb-480b-9ad4-38b0a464621a",
+    "name": "Test Bug Hunter",
+    "email": "355743f76ac66b7364cf51b085d98d57:931dd20814f0dbe6f16b67280c67ee3e",
+    "password": "d680065f7e95368a824a0f3059ec11a5:d6d8f0611bd5bc6328e535e5db179d304aceff226cd34a51a98d9a4fe8d64d93bc69123e8638f6d88c0304751b31d8957f9363f0ea22721f36c8b4cd019509b6",
+    "resetToken": null,
+    "history": [],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "bb29ad82137f454e5905c7b55b840f40:1804247d8c1a554dd47a2f955546a274",
+    "createdAt": "2026-02-13T20:19:32.281Z"
+  },
+  {
+    "id": "ed936d06-6df7-42c4-b93b-ddc26cbc8831",
+    "_id": "ed936d06-6df7-42c4-b93b-ddc26cbc8831",
+    "name": "sunil",
+    "email": "fcd488c23d4e1e2220feaf0066b674ba:9ec634cae49f57ff397b097bfe2cdab6",
+    "password": "ce5458613ba601e44bd200ef9469eb98:b783577bbeb5c185ff5a55ef220ac2cf0bdf13a0c44d7c37a2aa5478de94a887b3b361cce707bde9f185d194e57782a7079fd51434aa1e7dfc3b61df52d6efc7",
+    "resetToken": null,
+    "resetTokenExpire": null,
+    "history": [
+      {
+        "id": 1771254743447,
+        "date": "16/2/2026",
+        "timestamp": "16/2/2026, 8:42:23 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.9266389938997192
+          }
+        ]
+      },
+      {
+        "id": 1771254743439,
+        "date": "16/2/2026",
+        "timestamp": "16/2/2026, 8:42:23 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.9266389938997192
+          }
+        ]
+      },
+      {
+        "id": 1771254641495,
+        "date": "16/2/2026",
+        "timestamp": "16/2/2026, 8:40:41 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.9266389938997192
+          }
+        ]
+      },
+      {
+        "id": 1771254641487,
+        "date": "16/2/2026",
+        "timestamp": "16/2/2026, 8:40:41 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.9266389938997192
+          }
+        ]
+      },
+      {
+        "id": 1771254406395,
+        "date": "16/2/2026",
+        "timestamp": "16/2/2026, 8:36:46 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.9266389938997192
+          }
+        ]
+      },
+      {
+        "id": 1771254406387,
+        "date": "16/2/2026",
+        "timestamp": "16/2/2026, 8:36:46 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.9266389938997192
+          }
+        ]
+      }
+    ],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "15123ea6b14b3b11fa67eb4f6ec34666:7c39819b044ce784cf0e7a280019ea29",
+    "createdAt": "2026-02-13T20:22:40.638Z"
   }
 ]

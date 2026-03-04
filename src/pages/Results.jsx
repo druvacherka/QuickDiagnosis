@@ -146,10 +146,20 @@ const Results = () => {
                     <div className="card" style={{ padding: '1.5rem', background: 'var(--primary-gradient)', color: 'white', border: 'none', flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>Take Action</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', justifyContent: 'center' }}>
-                            <Link to="/doctors" className="btn" style={{ background: 'white', color: 'var(--primary-color)', width: '100%', padding: '12px', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                            <Link
+                                to="/doctors"
+                                state={{ disease: primary.disease }}
+                                className="btn"
+                                style={{ background: 'white', color: 'var(--primary-color)', width: '100%', padding: '12px', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+                            >
                                 <Stethoscope size={18} /> Consult a Doctor
                             </Link>
-                            <Link to="/hospitals" className="btn" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', width: '100%', padding: '12px', border: '1px solid rgba(255,255,255,0.3)', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                            <Link
+                                to="/hospitals"
+                                state={{ disease: primary.disease }}
+                                className="btn"
+                                style={{ background: 'rgba(255,255,255,0.15)', color: 'white', width: '100%', padding: '12px', border: '1px solid rgba(255,255,255,0.3)', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+                            >
                                 <MapPin size={18} /> Find Local Hospital
                             </Link>
                             <Link to="/symptoms" style={{ textAlign: 'center', color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', marginTop: '0.5rem', textDecoration: 'none' }}>
