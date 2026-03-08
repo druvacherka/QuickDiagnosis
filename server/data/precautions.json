@@ -1,0 +1,248 @@
+{
+    "Fungal infection": [
+        "Bath twice",
+        "Use dettol or neem in bathing water",
+        "Keep infected area dry",
+        "Use clean towels"
+    ],
+    "Allergy": [
+        "Apply calamine",
+        "Cover area with bandage",
+        "Use ice to compress itching",
+        "Avoid allergens"
+    ],
+    "GERD": [
+        "Avoid fatty spicy food",
+        "Avoid caffeine",
+        "Lower body weight",
+        "Maintain healthy weight"
+    ],
+    "Chronic cholestasis": [
+        "Cold water bath",
+        "Anti itch medicine",
+        "Consult doctor",
+        "Eat healthy"
+    ],
+    "Drug Reaction": [
+        "Stop taking drug",
+        "Consult nearest hospital",
+        "Drink plenty of water",
+        "Antihistamines"
+    ],
+    "Peptic ulcer diseae": [
+        "Avoid spicy food",
+        "Consume mineral water",
+        "Exercise",
+        "Smoking quitting"
+    ],
+    "AIDS": [
+        "Avoid open cuts",
+        "Wear mask",
+        "Consult doctor",
+        "Follow medication"
+    ],
+    "Diabetes": [
+        "Exercise",
+        "Eat healthy",
+        "Maintain healthy weight",
+        "Controlled diet"
+    ],
+    "Gastroenteritis": [
+        "Salt water gargle",
+        "Consume pre-bioties",
+        "Drink plenty of water",
+        "Rest"
+    ],
+    "Bronchial Asthma": [
+        "Switch to loose clothing",
+        "Take deep breaths",
+        "Stop smoking",
+        "Consult doctor"
+    ],
+    "Hypertension": [
+        "Meditation",
+        "Salt reduction",
+        "Check blood pressure",
+        "Exercise"
+    ],
+    "Migraine": [
+        "Meditation",
+        "Reduce stress",
+        "Use earmuffs",
+        "Consult doctor"
+    ],
+    "Cervical spondylosis": [
+        "Use heating pad or cold pack",
+        "Exercise",
+        "Take rest",
+        "Consult doctor"
+    ],
+    "Paralysis (brain hemorrhage)": [
+        "Massage",
+        "Eat healthy",
+        "Exercise",
+        "Consult doctor"
+    ],
+    "Jaundice": [
+        "Drink plenty of water",
+        "Consume milk thistle",
+        "Eat fruits and high fiber food",
+        "Medication"
+    ],
+    "Malaria": [
+        "Consult nearest hospital",
+        "Avoid fatty spicy food",
+        "Keep surroundings clean",
+        "Usage of antimaterial drugs"
+    ],
+    "Chicken pox": [
+        "Use neem in bathing",
+        "Consume neem leaf",
+        "Avoid public places",
+        "Drink plenty of water"
+    ],
+    "Dengue": [
+        "Drink plenty of water",
+        "Avoid fatty spicy food",
+        "Keep surroundings clean",
+        "Use mosquito net"
+    ],
+    "Typhoid": [
+        "Eat high calorie vegetables",
+        "Antiobiotic therapy",
+        "Consult doctor",
+        "Rest"
+    ],
+    "hepatitis A": [
+        "Medication",
+        "Eat healthy",
+        "Avoid spicy food",
+        "Rest"
+    ],
+    "Hepatitis B": [
+        "Consult doctor",
+        "Medication",
+        "Eat healthy",
+        "Rest"
+    ],
+    "Hepatitis C": [
+        "Consult doctor",
+        "Medication",
+        "Eat healthy",
+        "Rest"
+    ],
+    "Hepatitis D": [
+        "Consult doctor",
+        "Medication",
+        "Eat healthy",
+        "Rest"
+    ],
+    "Hepatitis E": [
+        "Consult doctor",
+        "Medication",
+        "Eat healthy",
+        "Rest"
+    ],
+    "Alcoholic hepatitis": [
+        "Stop alcohol consumption",
+        "Consult doctor",
+        "Medication",
+        "Follow diet"
+    ],
+    "Tuberculosis": [
+        "Cover mouth",
+        "Consult doctor",
+        "Medication",
+        "Rest"
+    ],
+    "Common Cold": [
+        "Drink plenty of fluids",
+        "Take proper rest",
+        "Avoid cold exposure",
+        "Salt water gargle"
+    ],
+    "Pneumonia": [
+        "Consult doctor",
+        "Medication",
+        "Rest",
+        "Drink fluids"
+    ],
+    "Dimorphic hemmorhoids(piles)": [
+        "Avoid fatty spicy food",
+        "Consume high fiber food",
+        "Drink plenty of water",
+        "Warm bath"
+    ],
+    "Heart attack": [
+        "Call ambulance",
+        "Chew aspirin",
+        "Keep calm",
+        "Consult doctor"
+    ],
+    "Varicose veins": [
+        "Lie down flat and raise the leg high",
+        "Use heart-shaped pillow",
+        "Exercise",
+        "Avoid standing for long time"
+    ],
+    "Hypothyroidism": [
+        "Medication",
+        "Exercise",
+        "Eat healthy",
+        "Maintain healthy weight"
+    ],
+    "Hyperthyroidism": [
+        "Medication",
+        "Exercise",
+        "Eat healthy",
+        "Maintain healthy weight"
+    ],
+    "Hypoglycemia": [
+        "Lie down on side",
+        "Check sugar level",
+        "Drink juice",
+        "Consult doctor"
+    ],
+    "Osteoarthristis": [
+        "Exercise",
+        "Use heating pad or cold pack",
+        "Maintain healthy weight",
+        "Consult doctor"
+    ],
+    "Arthritis": [
+        "Exercise",
+        "Use heating pad or cold pack",
+        "Maintain healthy weight",
+        "Consult doctor"
+    ],
+    "(vertigo) Paroymsal  Positional Vertigo": [
+        "Lie down",
+        "Avoid sudden movement",
+        "Consult doctor",
+        "Rest"
+    ],
+    "Acne": [
+        "Wash face with mild cleanser",
+        "Avoid touching face",
+        "Keep hair clean",
+        "Eat healthy"
+    ],
+    "Urinary tract infection": [
+        "Drink plenty of water",
+        "Increase vitamin C intake",
+        "Drink cranberry juice",
+        "Medication"
+    ],
+    "Psoriasis": [
+        "Wash hands with warm water",
+        "Apply moisturizer",
+        "Consult doctor",
+        "Avoid stress"
+    ],
+    "Impetigo": [
+        "Soak affected area in warm water",
+        "Use antibiotic ointment",
+        "Avoid touching area",
+        "Keep area clean"
+    ]
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Phone, Navigation, AlertCircle, Info } from 'lucide-react';
+import { MapPin, Phone, Navigation, AlertCircle, Info, Stethoscope } from 'lucide-react';
 import { getNearbyPlaces, getCoordinates } from '../services/api';
 import { useLocation } from 'react-router-dom';
 
@@ -90,7 +90,7 @@ const Hospitals = () => {
 
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h2 style={{ color: 'var(--primary-color)', margin: 0 }}>Nearby Hospitals</h2>
                     <button onClick={handleManualLocation} className="btn btn-secondary" style={{ fontSize: '0.85rem' }}>
@@ -109,26 +109,33 @@ const Hospitals = () => {
                 )}
 
                 {/* Specialty Indicator */}
-                {disease && !loading && !error && (
+                {!loading && !error && hospitals.disease && (
                     <div style={{
-                        marginBottom: '1.5rem',
-                        padding: '1rem',
+                        padding: '1.25rem',
                         backgroundColor: '#f0f9ff',
                         border: '1px solid #bae6fd',
                         borderRadius: 'var(--border-radius-md)',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
+                        flexDirection: 'column',
+                        gap: '8px',
                         color: '#0369a1'
                     }}>
-                        <Info size={18} />
-                        <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                            Showing hospitals recommended for <strong>{disease}</strong>
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Info size={20} />
+                            <span style={{ fontSize: '1.05rem', fontWeight: 600 }}>
+                                Predicted Disease: {hospitals.disease}
+                            </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                            <Stethoscope size={18} />
+                            <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+                                Recommended Specialist: {hospitals.specialist}
+                            </span>
+                        </div>
                     </div>
                 )}
 
-                {!loading && !error && hospitals.length === 0 && (
+                {!loading && !error && (!hospitals.hospitals || hospitals.hospitals.length === 0) && (
                     <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
                         <MapPin size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
                         <p>No medical facilities found in this area. Try searching for a larger city.</p>
@@ -139,32 +146,22 @@ const Hospitals = () => {
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {hospitals.map(hospital => (
-                        <div key={hospital.place_id || Math.random()} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {!loading && !error && hospitals.hospitals && hospitals.hospitals.map((hospital, index) => (
+                        <div key={hospital.place_id || index} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <h3 style={{ margin: 0 }}>{hospital.name}</h3>
-                                </div>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>{hospital.name}</h3>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '0.5rem 0' }}>{hospital.vicinity}</p>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <span style={{
-                                        backgroundColor: '#f1f5f9', color: 'var(--text-secondary)',
-                                        fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px'
-                                    }}>
-                                        Nearby
-                                    </span>
-                                </div>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
-                                <span style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>
-                                    {hospital.distance ? `${hospital.distance.toFixed(1)} km` : ''}
-                                </span>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button className="btn btn-primary" style={{ padding: '0.5rem' }} title="View on Map" onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${hospital.geometry.location.lat}&mlon=${hospital.geometry.location.lng}#map=16/${hospital.geometry.location.lat}/${hospital.geometry.location.lng}`, '_blank')}>
-                                        <Navigation size={18} />
-                                    </button>
-                                </div>
+                                <button
+                                    className="btn btn-primary"
+                                    style={{ padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    title="View on Google Maps"
+                                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${hospital.geometry.location.lat},${hospital.geometry.location.lng}`, '_blank')}
+                                >
+                                    <Navigation size={16} /> Get Directions
+                                </button>
                             </div>
                         </div>
                     ))}

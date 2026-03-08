@@ -2,12 +2,20 @@ import React, { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle, Stethoscope, MapPin, Activity, ArrowLeft, AlertCircle } from 'lucide-react';
 import { saveToHistory } from '../services/api';
+import { useNotifications } from '../context/NotificationContext';
+import axios from 'axios';
 
 const Results = () => {
     const location = useLocation();
     const { prediction } = location.state || {};
 
+    const { addNotification } = useNotifications();
     const hasSavedRef = React.useRef(false);
+    const hasNotifiedRef = React.useRef(false);
+    const normalizedPredictions = prediction ? (
+        Array.isArray(prediction) ? prediction :
+            (prediction.predictions || prediction.all_predictions || [prediction])
+    ) : [];
 
     useEffect(() => {
         if (prediction && !hasSavedRef.current) {
@@ -33,8 +41,26 @@ const Results = () => {
                 const updatedHistory = [latestEntry, ...history].slice(0, 50);
                 localStorage.setItem(historyKey, JSON.stringify(updatedHistory));
             }
+
+            // 3. Trigger Notification
+            if (!hasNotifiedRef.current) {
+                hasNotifiedRef.current = true;
+                const primaryDisease = normalizedPredictions[0]?.disease;
+                if (primaryDisease) {
+                    axios.get(`http://localhost:5000/api/precautions/${primaryDisease}`)
+                        .then(res => {
+                            addNotification({
+                                type: 'disease',
+                                title: `Health Alert: ${primaryDisease}`,
+                                message: `We detected a potential profile for ${primaryDisease}. Please check the precautions below.`,
+                                precautions: res.data
+                            });
+                        })
+                        .catch(err => console.error("Failed to fetch precautions for notification:", err));
+                }
+            }
         }
-    }, [prediction]);
+    }, [prediction, normalizedPredictions]);
 
     if (!prediction) {
         return (
@@ -49,8 +75,6 @@ const Results = () => {
         );
     }
 
-    const normalizedPredictions = Array.isArray(prediction) ? prediction :
-        (prediction.all_predictions || [prediction]);
 
     if (normalizedPredictions.length === 0) return null;
 
@@ -149,14 +173,6 @@ const Results = () => {
                     <div className="card" style={{ padding: '1.5rem', background: 'var(--primary-gradient)', color: 'white', border: 'none', flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>Take Action</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', justifyContent: 'center' }}>
-                            <Link
-                                to="/doctors"
-                                state={{ disease: primary.disease }}
-                                className="btn"
-                                style={{ background: 'white', color: 'var(--primary-color)', width: '100%', padding: '12px', textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: 600 }}
-                            >
-                                <Stethoscope size={18} /> Consult a Doctor
-                            </Link>
                             <Link
                                 to="/hospitals"
                                 state={{ disease: primary.disease }}

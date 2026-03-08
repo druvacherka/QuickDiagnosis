@@ -1,143 +1,151 @@
 const axios = require('axios');
+const diseaseSpecialtyMap = require('../config/specialties');
 
 // OpenStreetMap API URLs
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const OVERPASS_MIRROR = 'https://overpass.kumi.systems/api/interpreter';
 
-/**
- * Deduplicates an array of places based on osm_id and fuzzy matching.
- */
 const deduplicatePlaces = (places) => {
     const seenIds = new Set();
     const uniquePlaces = [];
-
     for (const place of places) {
         if (seenIds.has(place.id)) continue;
         seenIds.add(place.id);
         uniquePlaces.push(place);
     }
-
     return uniquePlaces;
 };
 
-/**
- * Fetch nearby hospitals or specialists using the Overpass API (Free OSM).
- * @param {number} lat - Latitude
- * @param {number} lng - Longitude
- * @param {string} type - 'hospital' or 'doctor'
- * @param {string} unused_apiKey - (Kept for compatibility)
- * @param {string} specialty - Optional medical specialty (e.g., 'dermatology', 'cardiologist')
- */
-const getNearbyPlaces = async (lat, lng, type = 'hospital', unused_apiKey, specialty = '') => {
+const getSpecialistForDisease = (disease) => {
+    if (!disease) return 'General Physician';
+    return diseaseSpecialtyMap[disease] || 'General Physician';
+};
+
+const filterHospitalsWithChatGPT = async (hospitals, disease, specialist) => {
+    if (!process.env.OPENAI_API_KEY || !disease || hospitals.length === 0) return hospitals;
     try {
-        const radius = 5000; // 5km
+        const hospitalNames = hospitals.map((h, i) => `${i + 1}. ${h.name} (${h.vicinity})`).join('\n');
+        const prompt = `
+        I have a list of local medical facilities. The patient is diagnosed with "${disease}" and needs a "${specialist}".
+        Please vigorously filter this list and return ONLY the numbers of the facilities that genuinely offer this specialized service or have this specialist present. Be strictly accurate.
+        - If it is a major general hospital, it likely has the specialist, so INCLUDE it.
+        - If it's a small clinic with an unrelated name (e.g. Dental clinic for a Heart condition), EXCLUDE it.
 
-        // Added [timeout:25] for reliability on community-run servers
-        let queryBody = `[out:json][timeout:25];`;
+        List of facilities:
+        ${hospitalNames}
 
-        if (type === 'hospital') {
-            queryBody += `
-                (
-                  node["amenity"="hospital"](around:${radius},${lat},${lng});
-                  way["amenity"="hospital"](around:${radius},${lat},${lng});
-                  node["healthcare"="hospital"](around:${radius},${lat},${lng});
-                );
-                out center;`;
-        } else {
-            // Searching for doctors/specialists with genetic fallback
-            const specialtyTag = specialty ? `["speciality"~"${specialty}",i]` : '';
-            queryBody += `
-                (
-                  node["amenity"="doctors"]${specialtyTag}(around:${radius},${lat},${lng});
-                  node["healthcare"="doctor"]${specialtyTag}(around:${radius},${lat},${lng});
-                  node["healthcare"="specialist"]${specialtyTag}(around:${radius},${lat},${lng});
-                  node["amenity"="doctors"](around:${radius},${lat},${lng}); // Generic fallback
-                );
-                out center;`;
+        Return your answer ONLY as a JSON array of integers (the facility numbers). Example: [1, 3]
+        `;
+
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.1
+        }, {
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const content = response.data.choices[0].message.content;
+        const validIndices = JSON.parse(content.match(/\[(.*?)\]/)[0]);
+        return hospitals.filter((_, idx) => validIndices.includes(idx + 1));
+
+    } catch (error) {
+        console.error("ChatGPT Filter Error:", error.message);
+        return hospitals;
+    }
+};
+
+const getNearbyPlaces = async (lat, lng, type = 'hospital', apiKey, specialty = '', disease = '') => {
+    try {
+        const activeApiKey = process.env.GEOAPIFY_API_KEY;
+        const specialistToSearch = getSpecialistForDisease(disease);
+
+        if (!activeApiKey) {
+            console.error("Geoapify API Key is missing. Returning empty result.");
+            return { disease: disease || 'Unknown', specialist: specialistToSearch, hospitals: [] };
         }
 
-        const fetchFromOverpass = async (url) => {
-            return axios.post(url, `data=${encodeURIComponent(queryBody)}`, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': 'QuickDiagnosisApp/1.0'
-                },
-                timeout: 30000 // 30 sec axios timeout
-            });
-        };
+        const radius = 10000; // 10km radius
 
-        let response;
-        try {
-            response = await fetchFromOverpass(OVERPASS_URL);
-        } catch (e) {
-            console.warn(`Primary Overpass API failed (${e.message}), trying mirror...`);
-            response = await fetchFromOverpass(OVERPASS_MIRROR);
-        }
+        // Fetch all generic and specialized healthcare centers from Geoapify
+        const url = `https://api.geoapify.com/v2/places?categories=healthcare.hospital,healthcare.clinic_or_praxis&filter=circle:${lng},${lat},${radius}&limit=30&apiKey=${activeApiKey}`;
 
-        const elements = response.data.elements || [];
+        const response = await axios.get(url, { timeout: 10000 });
+        const features = response.data.features || [];
 
-        // Map Overpass results to a consistent format
-        const results = elements.map(el => {
-            const latitude = el.lat || (el.center && el.center.lat);
-            const longitude = el.lon || (el.center && el.center.lon);
-            const name = el.tags.name || 'Unnamed Medical Facility';
-
+        let results = features.map(f => {
+            const p = f.properties;
             return {
-                place_id: `osm_${el.id}`,
-                id: el.id,
-                name: name,
-                vicinity: el.tags['addr:full'] || el.tags['addr:street'] || el.tags['addr:city'] || 'Nearby',
-                geometry: {
-                    location: {
-                        lat: latitude,
-                        lng: longitude
-                    }
-                },
-                types: [type],
-                rating: 0,
-                distance: getDistanceFromLatLonInKm(lat, lng, latitude, longitude)
+                id: p.place_id,
+                name: p.name || 'Medical Facility',
+                vicinity: p.address_line2 || p.street || 'Nearby Area',
+                geometry: { location: { lat: p.lat, lng: p.lon } },
+                distance: p.distance ? (p.distance / 1000) : getDistanceFromLatLonInKm(lat, lng, p.lat, p.lon)
             };
         });
 
-        const cleanResults = deduplicatePlaces(results);
+        // Clean any potential duplicate places from the Geoapify result
+        let cleanResults = deduplicatePlaces(results);
+
+        if (disease) {
+            // Guarantee specialist screening using our strict AI checker
+            cleanResults = await filterHospitalsWithChatGPT(cleanResults, disease, specialistToSearch);
+        }
+
+        // Sort by closest distance
         cleanResults.sort((a, b) => a.distance - b.distance);
 
-        return cleanResults;
+        const top5Hospitals = cleanResults.slice(0, 5);
+
+        return {
+            disease: disease || 'General Inquiry',
+            specialist: specialistToSearch,
+            hospitals: top5Hospitals
+        };
 
     } catch (error) {
-        console.error('Error in OSM getNearbyPlaces:', error.message);
-        return [];
+        console.error('Error in Geoapify getNearbyPlaces:', error.response ? error.response.data : error.message);
+        return {
+            error: "Failed to fetch nearby hospitals from Geoapify.",
+            disease: disease || 'General Inquiry',
+            specialist: getSpecialistForDisease(disease),
+            hospitals: []
+        };
     }
 };
 
 /**
- * Geocodes an address into latitude and longitude using Nominatim (Free OSM).
+ * Geocodes an address into latitude and longitude using Geoapify
  */
 const getCoordinates = async (address, unused_apiKey) => {
     try {
-        const response = await axios.get(NOMINATIM_URL, {
+        const activeApiKey = process.env.GEOAPIFY_API_KEY;
+        if (!activeApiKey) throw new Error("Missing Geoapify API Key for Geocoding");
+
+        const response = await axios.get(`https://api.geoapify.com/v1/geocode/search`, {
             params: {
-                q: address,
+                text: address,
                 format: 'json',
-                limit: 1
-            },
-            headers: {
-                'User-Agent': 'QuickDiagnosisApp/1.0'
+                limit: 1,
+                apiKey: activeApiKey
             }
         });
 
-        if (!response.data || response.data.length === 0) {
-            throw new Error('Address not found');
+        if (!response.data || !response.data.results || response.data.results.length === 0) {
+            throw new Error('Address not found via Geoapify');
         }
 
-        const result = response.data[0];
+        const result = response.data.results[0];
         return {
             lat: parseFloat(result.lat),
             lng: parseFloat(result.lon)
         };
     } catch (error) {
-        console.error('Error in OSM getCoordinates:', error.message);
+        console.error('Error in Geoapify getCoordinates:', error.message);
         throw error;
     }
 };

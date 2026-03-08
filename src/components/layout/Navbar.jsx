@@ -1,11 +1,16 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Activity, User, LogOut, ChevronDown, Bell } from 'lucide-react';
+import { useNotifications } from '../../context/NotificationContext';
+import NotificationPanel from './NotificationPanel';
 
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const user = JSON.parse(localStorage.getItem('user'));
+
+    const { unreadCount, requestPermission } = useNotifications();
+    const [showNotifications, setShowNotifications] = React.useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -58,17 +63,6 @@ const Navbar = () => {
                                     Symptom Checker
                                 </Link>
                                 <Link
-                                    to="/doctors"
-                                    className="btn"
-                                    style={{
-                                        background: isActive('/doctors') ? '#eff6ff' : 'transparent',
-                                        color: isActive('/doctors') ? 'var(--primary-color)' : 'var(--text-secondary)',
-                                        fontWeight: 500
-                                    }}
-                                >
-                                    Doctors
-                                </Link>
-                                <Link
                                     to="/hospitals"
                                     className="btn"
                                     style={{
@@ -84,9 +78,34 @@ const Navbar = () => {
                             <div style={{ width: '1px', height: '24px', background: 'var(--border-color)' }}></div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <button className="btn" style={{ padding: '8px', color: 'var(--text-secondary)' }}>
-                                    <Bell size={20} />
-                                </button>
+                                <div style={{ position: 'relative' }}>
+                                    <button
+                                        className="btn"
+                                        style={{ padding: '8px', color: 'var(--text-secondary)', position: 'relative' }}
+                                        onClick={() => {
+                                            setShowNotifications(!showNotifications);
+                                            requestPermission(); // Ask for permission when user interacts with notifications
+                                        }}
+                                    >
+                                        <Bell size={20} />
+                                        {unreadCount > 0 && (
+                                            <span style={{
+                                                position: 'absolute',
+                                                top: '4px',
+                                                right: '4px',
+                                                width: '10px',
+                                                height: '10px',
+                                                background: '#ef4444',
+                                                borderRadius: '50%',
+                                                border: '2px solid white'
+                                            }}></span>
+                                        )}
+                                    </button>
+
+                                    {showNotifications && (
+                                        <NotificationPanel onClose={() => setShowNotifications(false)} />
+                                    )}
+                                </div>
 
                                 <div className="dropdown" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <Link to="/profile" title="View Profile" style={{ textDecoration: 'none' }}>

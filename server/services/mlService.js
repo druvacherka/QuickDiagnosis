@@ -84,7 +84,7 @@ const trainModel = () => {
         console.log('Starting ML Model Training (Random Forest)...');
 
         try {
-            const pythonProcess = spawnSync('python', [
+            const pythonProcess = spawnSync('py', [
                 path.join(__dirname, 'train.py')
             ]);
 
@@ -121,7 +121,7 @@ const predictDisease = (userSymptoms) => {
     if (!isTrained) throw new Error('Model not loaded');
 
     try {
-        const pythonProcess = spawnSync('python', [
+        const pythonProcess = spawnSync('py', [
             path.join(__dirname, 'predict.py'),
             DATA_PATH,
             JSON.stringify(userSymptoms)

@@ -102,10 +102,71 @@
     "id": "fef93a22-dde8-4c4d-8508-1f468197fdf3",
     "_id": "fef93a22-dde8-4c4d-8508-1f468197fdf3",
     "name": " Druva",
-    "email": "dccc0060165bf8cb1f3ab673c3894acd:34e761ccf501b4e5b71d939a7f8c71bfded26a85a6962730b179ffb24f74f616",
-    "password": "94acbf5c724e997a280a8b0c24713f29:7624f6ec1bd751d24d194576b7a8cbe850917acfd13c1a5c7068672b09ed416d45ac7cd85d22bdf84f04d77b958da2cba8fcea7cc0e8b610116c9273102bb755",
-    "resetToken": null,
-    "resetTokenExpire": null,
+    "email": "ce49ef66239db7a86fdbed02fe7e97f3:d6493377e7b7a9391874f75a961d15cfd8c6349cc7fdd1824420c1120a1a4b67",
+    "password": "407d3ca011c96e50d1ad06cb8262cd79:fe44e299a3130b870b4ef84dde3a4c21d0213759bcd6ef24eff4e17d327a58b761648ec421f3a4f4a7ad3889f1d7600d22e5fadefb0688d8503292e9ea62c9a2",
+    "resetToken": "9161736f18faceeac2638bcea220b5e7:4cc94562fea2193d5ac821b833200c07a3590364fee1f124befb0b969da8f52a9e29ce3d8136d579635d750fdba9385f",
+    "resetTokenExpire": 1772994468134,
+    "history": [
+      {
+        "id": 1772993746373,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 11:45:46 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.5223469120595214
+          },
+          {
+            "disease": "Hepatitis D",
+            "probability": 0.2552799375926194
+          },
+          {
+            "disease": "Hepatitis C",
+            "probability": 0
+          }
+        ]
+      },
+      {
+        "id": 1772993533294,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 11:42:13 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.5223469120595214
+          },
+          {
+            "disease": "Hepatitis D",
+            "probability": 0.2552799375926194
+          },
+          {
+            "disease": "Hepatitis C",
+            "probability": 0
+          }
+        ]
+      },
+      {
+        "id": 1772991546157,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 11:09:06 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.5223469120595214
+          },
+          {
+            "disease": "Hepatitis D",
+            "probability": 0.2552799375926194
+          },
+          {
+            "disease": "Hepatitis C",
+            "probability": 0
+          }
+        ]
+      }
+    ],
+    "securityQuestion": null,
+    "securityAnswer": null,
     "createdAt": "2026-02-13T16:34:22.017Z"
   },
   {
@@ -124,80 +185,13 @@
     "id": "ed936d06-6df7-42c4-b93b-ddc26cbc8831",
     "_id": "ed936d06-6df7-42c4-b93b-ddc26cbc8831",
     "name": "sunil",
-    "email": "fcd488c23d4e1e2220feaf0066b674ba:9ec634cae49f57ff397b097bfe2cdab6",
-    "password": "ce5458613ba601e44bd200ef9469eb98:b783577bbeb5c185ff5a55ef220ac2cf0bdf13a0c44d7c37a2aa5478de94a887b3b361cce707bde9f185d194e57782a7079fd51434aa1e7dfc3b61df52d6efc7",
+    "email": "53ad63289bdb8748e48adc93a8b44595:d51b2b96f7f9eb4177c38dcc4dd4060c",
+    "password": "e137ed747ee09414049792471604b75a:bfb2d2fd834c7c0a1f0cd39df5fa14996015b0cd8950e533a711841793704bd4a0d7f06a610193ffff555ec2d65981ce5ad06e0b3197ecfc8e36305077cb7864",
     "resetToken": null,
     "resetTokenExpire": null,
-    "history": [
-      {
-        "id": 1771254743447,
-        "date": "16/2/2026",
-        "timestamp": "16/2/2026, 8:42:23 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.9266389938997192
-          }
-        ]
-      },
-      {
-        "id": 1771254743439,
-        "date": "16/2/2026",
-        "timestamp": "16/2/2026, 8:42:23 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.9266389938997192
-          }
-        ]
-      },
-      {
-        "id": 1771254641495,
-        "date": "16/2/2026",
-        "timestamp": "16/2/2026, 8:40:41 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.9266389938997192
-          }
-        ]
-      },
-      {
-        "id": 1771254641487,
-        "date": "16/2/2026",
-        "timestamp": "16/2/2026, 8:40:41 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.9266389938997192
-          }
-        ]
-      },
-      {
-        "id": 1771254406395,
-        "date": "16/2/2026",
-        "timestamp": "16/2/2026, 8:36:46 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.9266389938997192
-          }
-        ]
-      },
-      {
-        "id": 1771254406387,
-        "date": "16/2/2026",
-        "timestamp": "16/2/2026, 8:36:46 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.9266389938997192
-          }
-        ]
-      }
-    ],
+    "history": [],
     "securityQuestion": "What was your first pet's name?",
-    "securityAnswer": "15123ea6b14b3b11fa67eb4f6ec34666:7c39819b044ce784cf0e7a280019ea29",
+    "securityAnswer": "19d471bc6c0299cf53f7215f7925fa66:da45ea38b72616616ed3127f5ecbc5dc",
     "createdAt": "2026-02-13T20:22:40.638Z"
   },
   {
@@ -270,5 +264,275 @@
     "securityQuestion": "What was your first pet's name?",
     "securityAnswer": "9b2e3e84cd3e63ea8f11cd698703c96c:20122867ba98dba61e759b9cfce1db28",
     "createdAt": "2026-03-07T15:40:50.765Z"
+  },
+  {
+    "id": "27a56155-683e-4588-b0de-aba0bd3dfec6",
+    "_id": "27a56155-683e-4588-b0de-aba0bd3dfec6",
+    "name": "Test User",
+    "email": "e05a0b4c1d02298b171866228e306065:f54cb8c926003510207d37728cdbaee43a217d358e050ad341d68362b089f3de",
+    "password": "c657217a3fa81bd7b804155a7b1365f2:db630e98e328bc3463b36651c2713d8b912613de2a7e59b7d78b9c5a1f7b9acd09f6e1eb912c8e9727064256e7099ead446ba4d7add976778d60ef901dc3dbad",
+    "resetToken": null,
+    "history": [
+      {
+        "id": 1772987720493,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 10:05:20 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9380957785865139
+          }
+        ]
+      },
+      {
+        "id": 1772987649726,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 10:04:09 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9397625679564034
+          }
+        ]
+      },
+      {
+        "id": 1772987491413,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 10:01:31 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9298874504860479
+          }
+        ]
+      },
+      {
+        "id": 1772987455549,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 10:00:55 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9298874504860479
+          }
+        ]
+      },
+      {
+        "id": 1772987250985,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 9:57:30 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9476322723934386
+          }
+        ]
+      },
+      {
+        "id": 1772987096152,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 9:54:56 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9412425899873995
+          }
+        ]
+      },
+      {
+        "id": 1772986957677,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 9:52:37 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9320092204590065
+          }
+        ]
+      },
+      {
+        "id": 1772986949995,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 9:52:30 pm",
+        "data": [
+          {
+            "disease": "Fungal infection",
+            "probability": 0.9320092204590065
+          }
+        ]
+      }
+    ],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "c01135929b19434363719299862cdc3a:902cefa368cb5980abef4d50e5de98f8",
+    "createdAt": "2026-03-08T16:00:57.174Z"
+  },
+  {
+    "id": "bf5776f3-eabd-41f4-82eb-c2c0cb14634c",
+    "_id": "bf5776f3-eabd-41f4-82eb-c2c0cb14634c",
+    "name": "abhi",
+    "email": "75c61d460344fa02afa97bd9d4b097c5:16d26849d72953d810f9d9ccdce04f90",
+    "password": "76a92007590d29c650cb988c52f2a347:8691e83b11d75a424756513d6c3850a309b700d5d4a4e665b289e8d13f131d019dbb00809fbb19e751cb257ee9530919b5ad0be0baa65d2794f943198ec38e72",
+    "resetToken": null,
+    "history": [
+      {
+        "id": 1772991151292,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 11:02:31 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.8328955873088372
+          },
+          {
+            "disease": "(vertigo) Paroymsal  Positional Vertigo",
+            "probability": 0
+          },
+          {
+            "disease": "Chicken pox",
+            "probability": 0
+          }
+        ]
+      },
+      {
+        "id": 1772991081357,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 11:01:21 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.8328955873088372
+          },
+          {
+            "disease": "(vertigo) Paroymsal  Positional Vertigo",
+            "probability": 0
+          },
+          {
+            "disease": "Chicken pox",
+            "probability": 0
+          }
+        ]
+      },
+      {
+        "id": 1772991020861,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 11:00:20 pm",
+        "data": [
+          {
+            "disease": "Chronic cholestasis",
+            "probability": 0.8328955873088372
+          },
+          {
+            "disease": "(vertigo) Paroymsal  Positional Vertigo",
+            "probability": 0
+          },
+          {
+            "disease": "Chicken pox",
+            "probability": 0
+          }
+        ]
+      }
+    ],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "19ab68f40905880dcf4ff5496d19bbef:1d8325668b7621eeb5580fb30a8c07a9",
+    "createdAt": "2026-03-08T17:28:56.618Z"
+  },
+  {
+    "id": "8ce08ffc-1ef3-4008-bf95-9318c0522ba0",
+    "_id": "8ce08ffc-1ef3-4008-bf95-9318c0522ba0",
+    "name": "abhi",
+    "email": "f44b6273ae9ddeddc8a72c8c784c43b7:119bcbcb952b78a16de9aa63eb0b45c61dca01b4ae01ae3671933ef0fc2ad7c6",
+    "password": "a93821298777b1acd877b1870b7cba40:2f1209c47019ae21d1ccfa04188d9480db02bfbe84d3e6121405b25acc05229cc3e6dce17742091b92a1e15b50c4a96a55f91c1b923493aa7c47edf05e3b3d91",
+    "resetToken": null,
+    "resetTokenExpire": null,
+    "history": [
+      {
+        "id": 1772997358960,
+        "date": "9/3/2026",
+        "timestamp": "9/3/2026, 12:45:59 am",
+        "data": [
+          {
+            "disease": "Bronchial Asthma",
+            "probability": 0.8206237779738723
+          },
+          {
+            "disease": "Jaundice",
+            "probability": 0
+          },
+          {
+            "disease": "Chicken pox",
+            "probability": 0
+          }
+        ]
+      },
+      {
+        "id": 1772996312210,
+        "date": "9/3/2026",
+        "timestamp": "9/3/2026, 12:28:32 am",
+        "data": [
+          {
+            "disease": "Bronchial Asthma",
+            "probability": 0.8206237779738723
+          },
+          {
+            "disease": "Jaundice",
+            "probability": 0
+          },
+          {
+            "disease": "Chicken pox",
+            "probability": 0
+          }
+        ]
+      },
+      {
+        "id": 1772995288305,
+        "date": "9/3/2026",
+        "timestamp": "9/3/2026, 12:11:28 am",
+        "data": [
+          {
+            "disease": "Bronchial Asthma",
+            "probability": 0.8206237779738723
+          },
+          {
+            "disease": "Jaundice",
+            "probability": 0
+          },
+          {
+            "disease": "Chicken pox",
+            "probability": 0
+          }
+        ]
+      }
+    ],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "a4c97a119fa50f02fa42d1d18737fe59:f680856df00c0732da6968e4c98549de",
+    "createdAt": "2026-03-08T18:41:04.535Z"
+  },
+  {
+    "id": "1450d947-c083-462c-b1ed-7890c17efe2e",
+    "_id": "1450d947-c083-462c-b1ed-7890c17efe2e",
+    "name": "abhi",
+    "email": "7d6ec729b1005fb7b7ec527c30f6186e:85aa4d252939d887e4228aab38f2d7ff7e81392cb75732ded348fb2915db62d9",
+    "password": "3f9c44da41d738514b1817c96a608180:f342a35ba92821edda0c14a159f7b6ddb6ac71d2b68bde5726f424cfd73e7e5d4f1af22744267c6fbad33bdaf97c708623ab41613512f88e26a0b34f0356368c",
+    "resetToken": null,
+    "history": [],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "ac5e462a3975ad8be3e3cfa9da4612b9:4553448c4b3ad47d9bed08bc7b001e1c",
+    "isVerified": false,
+    "verificationCode": "922663",
+    "createdAt": "2026-03-08T19:35:55.531Z"
+  },
+  {
+    "id": "9b78154e-c8ec-4a40-9d22-601cf34279d0",
+    "_id": "9b78154e-c8ec-4a40-9d22-601cf34279d0",
+    "name": "abbib",
+    "email": "5da1a1e5cfaa6518a29b321399c08fb0:d1f0c9feee4d13128c5191b9f715e2f9f4afcb52093720b31bc422155f42b196",
+    "password": "eaf8da5a088c175b9f401e35c867a29c:9b1a0388e5255e4b7d1825a5b5f3f549c06a6e74004d25ee72623ec8994da7e3f0773559cf06cefad106dfcdf77a9c788e56ecbbaa643b0876ccfeca7788c8bb",
+    "resetToken": null,
+    "history": [],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "194128ad86599cb8882e9ddcad50c52e:fb8def635f842229dda42ca0a41a4aa7",
+    "isVerified": false,
+    "verificationCode": "759980",
+    "createdAt": "2026-03-08T19:38:39.477Z"
   }
 ]
