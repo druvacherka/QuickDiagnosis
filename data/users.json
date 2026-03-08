@@ -199,5 +199,76 @@
     "securityQuestion": "What was your first pet's name?",
     "securityAnswer": "15123ea6b14b3b11fa67eb4f6ec34666:7c39819b044ce784cf0e7a280019ea29",
     "createdAt": "2026-02-13T20:22:40.638Z"
+  },
+  {
+    "id": "2de96a8a-ad72-4f13-a62d-9fa75a7beba3",
+    "_id": "2de96a8a-ad72-4f13-a62d-9fa75a7beba3",
+    "name": "sunil",
+    "email": "07ba3b5680da3829519f1e5afc2f9d4b:8834ad5d8525e2c2412ede10c5446484bc488cd5b97085abb9d528725c6042a2",
+    "password": "5939ccba5b7412d4328e77c48721d267:d8ec5585f4ff6ac216cd569159a9ee5a8d02bdcfc2519686c2b56703cc8c87584d5fbcd0d1e6ecb3d19232d5dad20ce8fb1e64ac3be7b8fd753045fdc8b51282",
+    "resetToken": null,
+    "resetTokenExpire": null,
+    "history": [
+      {
+        "id": 1772968405762,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 4:43:25 pm",
+        "data": [
+          {
+            "disease": "GERD",
+            "probability": 0.331322534109748
+          },
+          {
+            "disease": "Dimorphic hemmorhoids(piles)",
+            "probability": 0.03479289569406095
+          },
+          {
+            "disease": "Arthritis",
+            "probability": 0.01471165590487103
+          }
+        ]
+      },
+      {
+        "id": 1772967988197,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 4:36:28 pm",
+        "data": [
+          {
+            "disease": "GERD",
+            "probability": 0.3418464145912968
+          },
+          {
+            "disease": "Dimorphic hemmorhoids(piles)",
+            "probability": 0.03900571951012738
+          },
+          {
+            "disease": "Arthritis",
+            "probability": 0.02246708949578744
+          }
+        ]
+      },
+      {
+        "id": 1772966946183,
+        "date": "8/3/2026",
+        "timestamp": "8/3/2026, 4:19:06 pm",
+        "data": [
+          {
+            "disease": "Dimorphic hemmorhoids(piles)",
+            "probability": 0.0542498982054954
+          },
+          {
+            "disease": "Arthritis",
+            "probability": 0.03091500519311495
+          },
+          {
+            "disease": "Urinary tract infection",
+            "probability": 0.03577854246451412
+          }
+        ]
+      }
+    ],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "9b2e3e84cd3e63ea8f11cd698703c96c:20122867ba98dba61e759b9cfce1db28",
+    "createdAt": "2026-03-07T15:40:50.765Z"
   }
 ]

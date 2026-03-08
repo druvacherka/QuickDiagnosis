@@ -143,7 +143,7 @@ const Symptoms = () => {
 
             <div className="dashboard-grid" style={{ alignItems: 'stretch' }}>
                 {/* Left Column: Search & Common */}
-                <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10 }}>
                     <div className="mb-4">
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Search Symptoms</h3>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>Type to find symptoms from our medical database</p>

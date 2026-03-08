@@ -7,8 +7,11 @@ const Results = () => {
     const location = useLocation();
     const { prediction } = location.state || {};
 
+    const hasSavedRef = React.useRef(false);
+
     useEffect(() => {
-        if (prediction) {
+        if (prediction && !hasSavedRef.current) {
+            hasSavedRef.current = true;
             const user = JSON.parse(localStorage.getItem('user'));
             if (!user) return;
 

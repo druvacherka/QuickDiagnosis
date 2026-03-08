@@ -13,6 +13,20 @@ let isTrained = false;
 const DATA_PATH = path.join(__dirname, '../data/train_disease.csv');
 const MODEL_PATH = path.join(__dirname, '../data/model_v2.json');
 
+// Extract symptoms synchronously on startup so the API has them immediately
+try {
+    const firstLine = fs.readFileSync(DATA_PATH, 'utf8').split('\n')[0];
+    const columns = firstLine.split(',').map(c => c.trim()).filter(c => c.length > 0);
+    columns.forEach(col => {
+        if (col && col !== 'prognosis') {
+            symptomsList.add(col);
+        }
+    });
+    console.log(`Extracted ${symptomsList.size} symptoms from CSV.`);
+} catch (err) {
+    console.error('Failed to extract symptoms from CSV:', err);
+}
+
 /**
  * Loads the processed data from disk if available to skip CSV parsing.
  */

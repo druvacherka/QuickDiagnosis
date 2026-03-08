@@ -172,11 +172,19 @@ const Hospitals = () => {
             </div>
 
             <div className="card" style={{ height: 'fit-content', padding: 0, overflow: 'hidden' }}>
-                <div style={{ backgroundColor: '#e5e7eb', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
-                    <div className="text-center">
-                        <MapPin size={48} />
-                        <p>Map View Available on Click</p>
-                    </div>
+                <div style={{ backgroundColor: '#e5e7eb', height: '400px', width: '100%', position: 'relative' }}>
+                    {/* Embedded OpenStreetMap Iframe centered on the user's location */}
+                    <iframe
+                        title="OpenStreetMap"
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        scrolling="no"
+                        marginHeight="0"
+                        marginWidth="0"
+                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${userLocation.lng - 0.05}%2C${userLocation.lat - 0.05}%2C${userLocation.lng + 0.05}%2C${userLocation.lat + 0.05}&layer=mapnik&marker=${userLocation.lat}%2C${userLocation.lng}`}
+                        style={{ border: 'none', position: 'absolute', top: 0, left: 0 }}
+                    ></iframe>
                 </div>
                 <div style={{ padding: '1rem' }}>
                     <h4>Current Location</h4>

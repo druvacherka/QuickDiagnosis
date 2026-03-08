@@ -15,7 +15,7 @@ def train_model(csv_path, model_dir):
     
     # Preprocessing
     # Features (symptoms) are everything except 'prognosis'
-    X = data.drop('prognosis', axis=1)
+    X = data.drop('prognosis', axis=1).dropna(axis=1, how='all')
     y = data['prognosis']
     
     # Save the symptom list (the feature columns)
