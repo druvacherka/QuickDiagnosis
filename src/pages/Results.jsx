@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { AlertTriangle, CheckCircle, Stethoscope, MapPin, Activity, ArrowLeft, AlertCircle } from 'lucide-react';
-import { saveToHistory } from '../services/api';
+import { AlertTriangle, CheckCircle, Stethoscope, MapPin, Activity, ArrowLeft, AlertCircle, Navigation } from 'lucide-react';
+import { saveToHistory, getNearbyPlaces } from '../services/api';
 import { useNotifications } from '../context/NotificationContext';
 import axios from 'axios';
 
@@ -12,6 +12,9 @@ const Results = () => {
     const { addNotification } = useNotifications();
     const hasSavedRef = React.useRef(false);
     const hasNotifiedRef = React.useRef(false);
+    const [hospitals, setHospitals] = React.useState([]);
+    const [hospitalsLoading, setHospitalsLoading] = React.useState(false);
+
     const normalizedPredictions = prediction ? (
         Array.isArray(prediction) ? prediction :
             (prediction.predictions || prediction.all_predictions || [prediction])
@@ -58,6 +61,24 @@ const Results = () => {
                         })
                         .catch(err => console.error("Failed to fetch precautions for notification:", err));
                 }
+            }
+
+            // 4. Fetch Nearby Hospitals for Report
+            const primaryDisease = normalizedPredictions[0]?.disease;
+            if (primaryDisease && navigator.geolocation) {
+                setHospitalsLoading(true);
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    try {
+                        const data = await getNearbyPlaces(pos.coords.latitude, pos.coords.longitude, 'hospital', primaryDisease);
+                        if (data && data.hospitals) {
+                            setHospitals(data.hospitals.slice(0, 3));
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch hospitals for report:", err);
+                    } finally {
+                        setHospitalsLoading(false);
+                    }
+                }, () => setHospitalsLoading(false));
             }
         }
     }, [prediction, normalizedPredictions]);
@@ -143,6 +164,40 @@ const Results = () => {
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Nearby Hospitals Section */}
+                    <div style={{ marginTop: '2rem' }}>
+                        <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                            <MapPin size={22} color="var(--primary-color)" /> Nearby Medical Facilities
+                        </h3>
+
+                        {hospitalsLoading ? (
+                            <div style={{ padding: '1.5rem', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Locating nearby hospitals...</p>
+                            </div>
+                        ) : hospitals.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {hospitals.map((hospital, idx) => (
+                                    <div key={idx} className="card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-color)' }}>
+                                        <div>
+                                            <h4 style={{ margin: 0, fontSize: '0.95rem' }}>{hospital.name}</h4>
+                                            <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{hospital.vicinity}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${hospital.geometry.location.lat},${hospital.geometry.location.lng}`, '_blank')}
+                                            style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: 600 }}
+                                        >
+                                            <Navigation size={14} /> Maps
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ padding: '1.5rem', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>No facilities found nearby. Use the "Take Action" menu for full search.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

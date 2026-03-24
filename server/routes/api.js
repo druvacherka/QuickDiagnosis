@@ -4,6 +4,7 @@ const axios = require('axios');
 const mlService = require('../services/mlService');
 const mapsService = require('../services/mapsService');
 const { protect } = require('../middleware/authMiddleware');
+const Diagnosis = require('../models/Diagnosis');
 
 // Cache for daily health tip to ensure consistency over 24 hours
 let cachedDailyTip = {
@@ -16,7 +17,17 @@ let cachedDailyTip = {
 // @access  Private
 router.get('/history', protect, async (req, res) => {
     try {
-        res.json(req.user.history);
+        const diagnoses = await Diagnosis.find({ user_id: req.user._id }).sort({ createdAt: -1 }).limit(50);
+
+        // Map to frontend expected format
+        const history = diagnoses.map(d => ({
+            id: d._id,
+            date: d.createdAt.toLocaleDateString(),
+            timestamp: d.createdAt.toLocaleString(),
+            data: d.result
+        }));
+
+        res.json(history);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -34,16 +45,22 @@ router.post('/history', protect, async (req, res) => {
             return res.status(400).json({ message: 'Prediction data required' });
         }
 
-        const newEntry = {
-            id: Date.now(),
-            date: new Date().toLocaleDateString(),
-            timestamp: new Date().toLocaleString(),
-            data: prediction
-        };
+        // prediction might contain multiple predictions or a structured format.
+        // If there's a symptoms list, extract it, otherwise empty array.
+        const symptomsInput = Array.isArray(req.body.symptoms) ? req.body.symptoms : [];
 
-        // Add to the beginning of the history
-        req.user.history = [newEntry, ...req.user.history].slice(0, 50);
-        await req.user.save();
+        const diagnosis = await Diagnosis.create({
+            user_id: req.user._id,
+            symptoms: symptomsInput,
+            result: prediction
+        });
+
+        const newEntry = {
+            id: diagnosis._id,
+            date: diagnosis.createdAt.toLocaleDateString(),
+            timestamp: diagnosis.createdAt.toLocaleString(),
+            data: diagnosis.result
+        };
 
         res.status(201).json(newEntry);
     } catch (error) {
@@ -57,8 +74,7 @@ router.post('/history', protect, async (req, res) => {
 // @access  Private
 router.delete('/history', protect, async (req, res) => {
     try {
-        req.user.history = [];
-        await req.user.save();
+        await Diagnosis.deleteMany({ user_id: req.user._id });
         res.json({ message: 'History cleared' });
     } catch (error) {
         console.error(error);

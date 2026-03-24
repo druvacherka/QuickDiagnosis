@@ -64,17 +64,8 @@ const Register = () => {
             };
             const response = await registerUser(userData);
 
-            // Save user data (including token and registration-specific info like age/gender)
-            const fullUserData = {
-                ...response,
-                age: formData.age,
-                gender: formData.gender === 'select' ? '' : formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1)
-            };
-            localStorage.setItem('user', JSON.stringify(fullUserData));
-
-            alert("Registration successful!");
-            navigate('/dashboard');
-            window.location.reload();
+            alert("Registration successful! Please check your email to verify your account before logging in.");
+            navigate('/login');
         } catch (error) {
             console.error("Full Registration Error Details:", {
                 message: error.message,

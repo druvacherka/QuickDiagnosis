@@ -102,69 +102,9 @@
     "id": "fef93a22-dde8-4c4d-8508-1f468197fdf3",
     "_id": "fef93a22-dde8-4c4d-8508-1f468197fdf3",
     "name": " Druva",
-    "email": "ce49ef66239db7a86fdbed02fe7e97f3:d6493377e7b7a9391874f75a961d15cfd8c6349cc7fdd1824420c1120a1a4b67",
-    "password": "407d3ca011c96e50d1ad06cb8262cd79:fe44e299a3130b870b4ef84dde3a4c21d0213759bcd6ef24eff4e17d327a58b761648ec421f3a4f4a7ad3889f1d7600d22e5fadefb0688d8503292e9ea62c9a2",
-    "resetToken": "9161736f18faceeac2638bcea220b5e7:4cc94562fea2193d5ac821b833200c07a3590364fee1f124befb0b969da8f52a9e29ce3d8136d579635d750fdba9385f",
-    "resetTokenExpire": 1772994468134,
-    "history": [
-      {
-        "id": 1772993746373,
-        "date": "8/3/2026",
-        "timestamp": "8/3/2026, 11:45:46 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.5223469120595214
-          },
-          {
-            "disease": "Hepatitis D",
-            "probability": 0.2552799375926194
-          },
-          {
-            "disease": "Hepatitis C",
-            "probability": 0
-          }
-        ]
-      },
-      {
-        "id": 1772993533294,
-        "date": "8/3/2026",
-        "timestamp": "8/3/2026, 11:42:13 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.5223469120595214
-          },
-          {
-            "disease": "Hepatitis D",
-            "probability": 0.2552799375926194
-          },
-          {
-            "disease": "Hepatitis C",
-            "probability": 0
-          }
-        ]
-      },
-      {
-        "id": 1772991546157,
-        "date": "8/3/2026",
-        "timestamp": "8/3/2026, 11:09:06 pm",
-        "data": [
-          {
-            "disease": "Chronic cholestasis",
-            "probability": 0.5223469120595214
-          },
-          {
-            "disease": "Hepatitis D",
-            "probability": 0.2552799375926194
-          },
-          {
-            "disease": "Hepatitis C",
-            "probability": 0
-          }
-        ]
-      }
-    ],
+    "email": "d7f61076eb5174b4cd2b1f94563a3d90:bf225c333e46678d1868465d773e3e75be93f2696bdd9f8ad7564cc1844d294f",
+    "password": "1a3b247ef0f2ae66dcb409a0e7c5fa76:5bfa3eef8c60072cb49d8b4654e755f9bfc29f82e850a9e01f7100c7fa44f562540fcd2e7190fcce29b7d3890e88069c7c24bc6d2c7ab088fe20389f5349b6da",
+    "history": [],
     "securityQuestion": null,
     "securityAnswer": null,
     "createdAt": "2026-02-13T16:34:22.017Z"
@@ -534,5 +474,90 @@
     "isVerified": false,
     "verificationCode": "759980",
     "createdAt": "2026-03-08T19:38:39.477Z"
+  },
+  {
+    "id": "37c52fba-0aca-4d3b-a9a8-ca0a929c27cf",
+    "_id": "37c52fba-0aca-4d3b-a9a8-ca0a929c27cf",
+    "name": "E2E Test",
+    "email": "3bcf7a4e94a87870ea9d752b628997f0:579a48dc7387b5075097c005d8a6e279fa4ebf6d03aa939027b9ca58f54fbec9",
+    "password": "e4b6d6da9a7d8e8bfed4223cf76eedc3:63a7d643b95e7a879ec41dafd0ff5ec0725b5c8a80f461fb38afbb60b7b563a3a03be9b4ff71843c4a73a35ea52f8cd66d279d275ca07da681409b8149bd2a3e",
+    "history": [],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "9a8a9a6aae33864a7e147ab1d97d315f:266b8a308bff0245d0e6c5f3a8b4c422",
+    "createdAt": "2026-03-24T10:10:40.253Z"
+  },
+  {
+    "id": "b75a034f-8abc-49ad-90a3-9943dbd52871",
+    "_id": "b75a034f-8abc-49ad-90a3-9943dbd52871",
+    "name": "API Tester",
+    "email": "b1696273078907d047dc334bd12a9a09:698e1eaca6e8905e52b961f9b4e665b93c4fce4fc22938660be2dcb2b23b7083",
+    "password": "4155b8c0195b062d1bde3a2cdfdf2579:41ecce11ca875090fd9e35fcb6aa209999fb3606b09029f3798ea93fc8ff3570a80a1669f9fc48eaed3708e70094ef0533a3bd09baaebde03115d92791006bad",
+    "history": [
+      {
+        "id": 1774347987475,
+        "date": "24/3/2026",
+        "timestamp": "24/3/2026, 3:56:27 pm",
+        "data": {
+          "predictions": [
+            {
+              "disease": "Fungal infection",
+              "probability": 0.43749210700894403
+            },
+            {
+              "disease": "Drug Reaction",
+              "probability": 0.17814517960600784
+            },
+            {
+              "disease": "Psoriasis",
+              "probability": 0.007734062565251318
+            }
+          ],
+          "followUp": {
+            "disease": "Fungal infection",
+            "missingSymptoms": [
+              "nodal_skin_eruptions",
+              "dischromic _patches"
+            ],
+            "question": "Patients with Fungal infection often experience these symptoms."
+          }
+        }
+      }
+    ],
+    "securityQuestion": "test question?",
+    "securityAnswer": "2d1c01f99694d27506ebe97816a13722:888df2f334e1e0c1a4b92d75114a6fa4",
+    "createdAt": "2026-03-24T10:26:24.948Z"
+  },
+  {
+    "id": "49462368-2a8c-4a31-b2e6-3e986633c955",
+    "_id": "49462368-2a8c-4a31-b2e6-3e986633c955",
+    "name": "abhi cherka",
+    "email": "c6ebc8d1ddc8fc74519628f675ae24ec:029b461ea3556296dcbf6d8704f3e71e39f061917bf25d60a4c5f7212d23bd34",
+    "password": "993278b5df110a4530c08793d950d2fa:deef56b1b5e169e7d6fcfe4b84a64823d00638f36397dbdd731438c01550ec925fe04f5719302cbd89fd982371697a3f8eedb2ccf1340522841288383f730c90",
+    "history": [],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "ca765dba039f9267fd58b84f37526f86:164aff64df150bf6b575baaf21584466",
+    "createdAt": "2026-03-24T10:41:18.293Z"
+  },
+  {
+    "id": "d9267230-2ca6-4e4e-adb1-3a5bee3dcb02",
+    "_id": "d9267230-2ca6-4e4e-adb1-3a5bee3dcb02",
+    "name": "abbi",
+    "email": "f4a5838680925663b05c6cd6275543ad:5c21e6fd6c1e25cb3700f6cf48998fb8b86f12a86f112a5b3e9b49541970598f",
+    "password": "d184d180868089e202e1e5c3278763e6:dc54837ac81a8dadefee598864925698fc7a6f7d7c2a93670e96293744fec11f32dd9b8259d9aeaf1ec73384c0ed32e2b9ab7dc8993ad9cd7c913f05bcc7500e",
+    "history": [],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "fd2a4d57080fc0f06f044448c97f3034:9ce8dcad2f9e562e3daefde13fb72b12",
+    "createdAt": "2026-03-24T10:43:06.955Z"
+  },
+  {
+    "id": "e20a567f-8ce6-413d-b606-8d0c225ca512",
+    "_id": "e20a567f-8ce6-413d-b606-8d0c225ca512",
+    "name": "abhi",
+    "email": "98255d3842348a9a6c38e2626a1d7325:1820f710120d5842e83ae0891f89ed646e86cad6f598649e8c93ff9448317020",
+    "password": "03cf82c3dbc6cf90681a06e9267ce7d3:cf98af42b3ffb98abdefe282667fc8b97ae38a186bb05221020be68265e2a0c3b633992783fa8451f67de3eeb54df16dca72d14ae36ecb13e8b671015f8d52be",
+    "history": [],
+    "securityQuestion": "What was your first pet's name?",
+    "securityAnswer": "7bcac91b3bc92e75170164a4d045a43d:62e77d5d7ac5837d15ca23207f5b0ec4",
+    "createdAt": "2026-03-24T10:55:08.357Z"
   }
 ]

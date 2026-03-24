@@ -12,7 +12,7 @@ import Results from './pages/Results';
 import Hospitals from './pages/Hospitals';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 
 // Simple protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -55,7 +55,7 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify/:token" element={<VerifyEmail />} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={

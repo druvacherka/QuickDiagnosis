@@ -9,7 +9,21 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [needsVerification, setNeedsVerification] = useState(false);
+    const [resendStatus, setResendStatus] = useState('');
     const navigate = useNavigate();
+
+    const handleResend = async () => {
+        try {
+            setResendStatus('sending');
+            await api.post('/auth/resend-verification', { email });
+            setResendStatus('sent');
+            alert('Verification email sent! Please check your inbox.');
+        } catch (error) {
+            setResendStatus('error');
+            alert(error.response?.data?.message || 'Failed to resend email');
+        }
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -23,7 +37,11 @@ const Login = () => {
             navigate('/dashboard');
             window.location.reload(); // Force refresh to update Navbar
         } catch (error) {
-            alert(error.response?.data?.message || "Login failed. Please check your credentials.");
+            const msg = error.response?.data?.message;
+            if (msg === 'Please verify your email before logging in') {
+                setNeedsVerification(true);
+            }
+            alert(msg || "Login failed. Please check your credentials.");
         } finally {
             setIsLoading(false);
         }
@@ -101,6 +119,20 @@ const Login = () => {
                             Forgot Password?
                         </Link>
                     </div>
+
+                    {needsVerification && (
+                        <div style={{ marginTop: '1rem', padding: '1rem', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', textAlign: 'center' }}>
+                            <p style={{ color: '#d97706', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Your email is not verified.</p>
+                            <button
+                                type="button"
+                                onClick={handleResend}
+                                disabled={resendStatus === 'sending'}
+                                style={{ background: 'none', border: 'none', color: '#b45309', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+                            >
+                                {resendStatus === 'sending' ? 'Sending...' : 'Resend Verification Email'}
+                            </button>
+                        </div>
+                    )}
 
                     <button type="submit" className="btn btn-primary w-full" disabled={isLoading} style={{ marginTop: '1rem' }}>
                         Sign In
