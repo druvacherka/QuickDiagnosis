@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Otp = require('../models/Otp');
+const { protect } = require('../middleware/authMiddleware');
 const sendEmail = require('../utils/sendEmail');
 
 // Generate JWT
@@ -13,71 +15,120 @@ const generateToken = (id) => {
     });
 };
 
-// @desc    Register new user
+// @desc    Send OTP for email verification (Step 1)
+// @route   POST /api/auth/send-otp
+// @access  Public
+router.post('/send-otp', async (req, res) => {
+    try {
+        const { email, name } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email is required' });
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists with this email' });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        await Otp.findOneAndUpdate(
+            { email },
+            { otp, createdAt: Date.now() },
+            { upsert: true, new: true }
+        );
+
+        const message = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                <h1 style="color: #0e8af8; text-align: center;">QuickDiagnosis</h1>
+                <h2 style="color: #334155; text-align: center;">Email Verification Code</h2>
+                <p style="color: #475569; font-size: 16px;">Hello ${name || 'User'},</p>
+                <p style="color: #475569; font-size: 16px;">Thank you for starting your registration. Please use the verification code below to proceed. This code expires in 15 minutes.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <span style="display: inline-block; padding: 15px 30px; background-color: #f1f5f9; color: #0f172a; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 8px; border: 2px dashed #cbd5e1;">${otp}</span>
+                </div>
+                <p style="color: #64748b; font-size: 14px; text-align: center;">If you didn't request this code, you can safely ignore this email.</p>
+            </div>
+        `;
+
+        await sendEmail({
+            email,
+            subject: 'QuickDiagnosis - Verify Your Email',
+            html: message
+        });
+
+        res.json({ message: 'OTP sent successfully' });
+    } catch (error) {
+        console.error('Send OTP Error:', error);
+        res.status(500).json({ message: 'Failed to send OTP' });
+    }
+});
+
+// @desc    Verify OTP and return auth token for registration (Step 2)
+// @route   POST /api/auth/verify-otp-initial
+// @access  Public
+router.post('/verify-otp-initial', async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) return res.status(400).json({ message: 'Email and OTP are required' });
+
+        const otpRecord = await Otp.findOne({ email });
+        if (!otpRecord || otpRecord.otp !== otp) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        const verificationToken = jwt.sign({ email }, process.env.JWT_SECRET || 'fallback_secret_for_development', { expiresIn: '30m' });
+        await Otp.deleteOne({ email });
+
+        res.json({ message: 'Email verified successfully', verificationToken });
+    } catch (error) {
+        console.error('Verify OTP Initial Error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// @desc    Register new user (Final Step)
 // @route   POST /api/auth/register
 // @access  Public
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, securityQuestion, securityAnswer } = req.body;
+        const { name, email, password, securityQuestion, securityAnswer, age, gender, history, verificationToken } = req.body;
 
-        if (!name || !email || !password || !securityQuestion || !securityAnswer) {
-            return res.status(400).json({ message: 'Please add all fields including security question' });
+        if (!name || !email || !password || !securityQuestion || !securityAnswer || !verificationToken) {
+            return res.status(400).json({ message: 'Please provide all details and verification token' });
         }
 
-        // Check user existence
+        try {
+            const decoded = jwt.verify(verificationToken, process.env.JWT_SECRET || 'fallback_secret_for_development');
+            if (decoded.email !== email) {
+                return res.status(400).json({ message: 'Token email mismatch' });
+            }
+        } catch (err) {
+            return res.status(400).json({ message: 'Invalid or expired verification token. Please restart registration.' });
+        }
+
         const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create user
-        const verificationToken = crypto.randomBytes(20).toString('hex');
         const user = await User.create({
             name,
             email,
             password: hashedPassword,
             securityQuestion,
-            securityAnswer: securityAnswer.trim().toLowerCase(), // Normalize answer for easier recovery
-            verificationToken,
-            tokenExpiry: Date.now() + 15 * 60 * 1000 // 15 minutes
+            securityAnswer: securityAnswer.trim().toLowerCase(),
+            age,
+            gender,
+            history,
+            isVerified: true
         });
 
         if (user) {
-            // Send verification email
-            // Use environment variable for frontend URL, default to localhost:5173
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-            const verifyUrl = `${frontendUrl}/verify/${verificationToken}`;
-
-            const message = `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h1 style="color: #0e8af8;">QuickDiagnosis</h1>
-                    <h2>Email Verification</h2>
-                    <p>Hello ${user.name},</p>
-                    <p>Thank you for registering. Please click the button below to verify your email address. This link will expire in 15 minutes.</p>
-                    <a href="${verifyUrl}" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;" clicktracking=off>Verify Email</a>
-                </div>
-            `;
-
-            try {
-                await sendEmail({
-                    email: user.email,
-                    subject: 'QuickDiagnosis - Verify Your Email',
-                    html: message
-                });
-                res.status(201).json({
-                    message: 'Registration successful. Please check your email to verify your account.'
-                });
-            } catch (err) {
-                // If the email fails to dispatch, rollback the user creation entirely
-                // This prevents ghost users from getting stuck in an unverified state
-                await User.deleteOne({ _id: user._id });
-                console.error('Email could not be sent', err);
-                res.status(500).json({ message: 'Email could not be sent. Please contact support.', debug: err.message });
-            }
+            res.status(201).json({
+                message: 'Registration successful! You can now log in.'
+            });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
         }
@@ -105,6 +156,14 @@ router.post('/login', async (req, res) => {
                 _id: user.id,
                 name: user.name,
                 email: user.email,
+                age: user.age,
+                gender: user.gender,
+                history: user.history,
+                weight: user.weight,
+                height: user.height,
+                bloodGroup: user.bloodGroup,
+                medicalHistory: user.medicalHistory,
+                allergies: user.allergies,
                 token: generateToken(user._id)
             });
         } else {
@@ -170,71 +229,44 @@ router.post('/reset-with-answer', async (req, res) => {
     }
 });
 
-// @desc    Verify email token
-// @route   GET /api/auth/verify/:token
-// @access  Public
-router.get('/verify/:token', async (req, res) => {
-    try {
-        const user = await User.findOne({
-            verificationToken: req.params.token,
-            tokenExpiry: { $gt: Date.now() }
-        });
 
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired verification token' });
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (user) {
+            user.age = req.body.age !== undefined && req.body.age !== '' ? Number(req.body.age) : user.age;
+            user.gender = req.body.gender || user.gender;
+            user.weight = req.body.weight !== undefined && req.body.weight !== '' ? Number(req.body.weight) : user.weight;
+            user.height = req.body.height !== undefined && req.body.height !== '' ? Number(req.body.height) : user.height;
+            user.bloodGroup = req.body.bloodGroup || user.bloodGroup;
+            user.medicalHistory = req.body.medicalHistory || user.medicalHistory;
+            user.allergies = req.body.allergies || user.allergies;
+
+            const updatedUser = await user.save();
+
+            res.json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                age: updatedUser.age,
+                gender: updatedUser.gender,
+                history: updatedUser.history,
+                weight: updatedUser.weight,
+                height: updatedUser.height,
+                bloodGroup: updatedUser.bloodGroup,
+                medicalHistory: updatedUser.medicalHistory,
+                allergies: updatedUser.allergies,
+                token: generateToken(updatedUser._id),
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
         }
-
-        user.isVerified = true;
-        user.verificationToken = undefined;
-        user.tokenExpiry = undefined;
-        await user.save();
-
-        res.json({ message: 'Email verified successfully. You can now log in.' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// @desc    Resend verification email
-// @route   POST /api/auth/resend-verification
-// @access  Public
-router.post('/resend-verification', async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) return res.status(400).json({ message: 'Email is required' });
-
-        const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        if (user.isVerified) return res.status(400).json({ message: 'User is already verified' });
-
-        const verificationToken = crypto.randomBytes(20).toString('hex');
-        user.verificationToken = verificationToken;
-        user.tokenExpiry = Date.now() + 15 * 60 * 1000;
-        await user.save();
-
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        const verifyUrl = `${frontendUrl}/verify/${verificationToken}`;
-
-        const message = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #0e8af8;">QuickDiagnosis</h1>
-                <h2>Email Verification</h2>
-                <p>Hello ${user.name},</p>
-                <p>Please click the button below to verify your email address. This link will expire in 15 minutes.</p>
-                <a href="${verifyUrl}" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;" clicktracking=off>Verify Email</a>
-            </div>
-        `;
-
-        await sendEmail({
-            email: user.email,
-            subject: 'QuickDiagnosis - Verify Your Email',
-            html: message
-        });
-
-        res.json({ message: 'Verification email sent' });
-    } catch (error) {
-        console.error(error);
+        console.error('Profile update error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

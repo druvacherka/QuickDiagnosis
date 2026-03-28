@@ -117,15 +117,23 @@ const { spawnSync } = require('child_process');
  * Predicts disease based on symptom similarity.
  * Calls the Python version of the prediction script.
  */
-const predictDisease = (userSymptoms) => {
+const predictDisease = (userSymptoms, confirmedSymptoms = null) => {
     if (!isTrained) throw new Error('Model not loaded');
 
     try {
-        const pythonProcess = spawnSync('py', [
+        const args = [
             path.join(__dirname, 'predict.py'),
             DATA_PATH,
             JSON.stringify(userSymptoms)
-        ]);
+        ];
+
+        // Pass confirmed (questionnaire Yes) symptoms as 4th argument so
+        // Python can compute the questionnaire-boosted confidence score.
+        if (confirmedSymptoms && confirmedSymptoms.length > 0) {
+            args.push(JSON.stringify(confirmedSymptoms));
+        }
+
+        const pythonProcess = spawnSync('py', args);
 
         if (pythonProcess.error) {
             console.error('Python execution error:', pythonProcess.error);

@@ -37,6 +37,31 @@ const userSchema = new mongoose.Schema({
     },
     tokenExpiry: {
         type: Date
+    },
+    age: {
+        type: Number
+    },
+    gender: {
+        type: String
+    },
+    history: {
+        type: Boolean,
+        default: false
+    },
+    weight: {
+        type: Number
+    },
+    height: {
+        type: Number
+    },
+    bloodGroup: {
+        type: String
+    },
+    medicalHistory: {
+        type: String
+    },
+    allergies: {
+        type: String
     }
 }, {
     timestamps: true

@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, ShieldCheck, ArrowRight, ArrowLeft, Check, Calendar, Activity } from 'lucide-react';
-import { registerUser } from '../services/api';
+import { User, Mail, Lock, ShieldCheck, ArrowRight, ArrowLeft, Check, Calendar, Activity, Loader2 } from 'lucide-react';
+import { registerUser, sendOtp, verifyOtpInitial } from '../services/api';
 
 const Register = () => {
     const navigate = useNavigate();
-    const [step, setStep] = React.useState(1);
-    const [formData, setFormData] = React.useState({
+    const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // OTP State
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const otpRefs = useRef([]);
+
+    const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
@@ -14,8 +20,9 @@ const Register = () => {
         securityQuestion: 'What was your first pet\'s name?',
         securityAnswer: '',
         age: '',
-        gender: 'select',
-        history: false
+        gender: '',
+        history: false,
+        verificationToken: ''
     });
 
     const handleChange = (e) => {
@@ -26,54 +33,119 @@ const Register = () => {
         }));
     };
 
-    const handleNext = () => {
-        if (step === 1 && (!formData.name || !formData.email)) {
-            alert("Please fill in all fields");
+    const handleOtpChange = (index, value) => {
+        if (isNaN(value)) return;
+        const newOtp = [...otp];
+        newOtp[index] = value;
+        setOtp(newOtp);
+        if (value !== '' && index < 5) otpRefs.current[index + 1].focus();
+    };
+
+    const handleOtpKeyDown = (index, e) => {
+        if (e.key === 'Backspace' && otp[index] === '' && index > 0) {
+            otpRefs.current[index - 1].focus();
+        }
+    };
+
+    const handleOtpPaste = (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        if (pastedData) {
+            const newOtp = [...otp];
+            for (let i = 0; i < pastedData.length; i++) newOtp[i] = pastedData.charAt(i);
+            setOtp(newOtp);
+            const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
+            otpRefs.current[nextIndex].focus();
+        }
+    };
+
+    const handleNextStep1 = async () => {
+        if (!formData.name || !formData.email) {
+            alert("Please fill in your name and email");
             return;
         }
-        if (step === 2) {
-            if (!formData.password || formData.password !== formData.confirmPassword) {
-                alert("Please check your passwords");
-                return;
-            }
-            if (formData.password.length < 8) {
-                alert("Password must be at least 8 characters");
-                return;
-            }
-            if (!formData.securityAnswer) {
-                alert("Please provide an answer to your security question");
-                return;
-            }
+        setIsLoading(true);
+        try {
+            await sendOtp(formData.email, formData.name);
+            setStep(2);
+        } catch (error) {
+            alert(error.response?.data?.message || "Failed to send verification code. Please try again.");
+        } finally {
+            setIsLoading(false);
         }
-        setStep(prev => prev + 1);
+    };
+
+    const handleNextStep2 = async () => {
+        const otpString = otp.join('');
+        if (otpString.length !== 6) {
+            alert("Please enter the 6-digit code");
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const res = await verifyOtpInitial(formData.email, otpString);
+            setFormData(prev => ({ ...prev, verificationToken: res.verificationToken }));
+            setStep(3);
+        } catch (error) {
+            alert(error.response?.data?.message || "Invalid or expired code.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleNextStep3 = () => {
+        if (!formData.password || formData.password !== formData.confirmPassword) {
+            alert("Please check your passwords");
+            return;
+        }
+        if (formData.password.length < 8) {
+            alert("Password must be at least 8 characters");
+            return;
+        }
+        if (!formData.securityAnswer) {
+            alert("Please provide an answer to your security question");
+            return;
+        }
+        setStep(4);
     };
 
     const handleBack = () => {
+        // Prevent going back from Step 3 -> 2 since OTP is already verified and consumed
+        if (step === 3) {
+            alert("Your email is already verified. You cannot go back to the verification step.");
+            return;
+        }
         setStep(prev => prev - 1);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
+            if (!formData.gender) {
+                alert("Please select your gender");
+                setIsLoading(false);
+                return;
+            }
+
             const userData = {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
                 securityQuestion: formData.securityQuestion,
-                securityAnswer: formData.securityAnswer
+                securityAnswer: formData.securityAnswer,
+                age: formData.age ? Number(formData.age) : undefined,
+                gender: formData.gender,
+                history: formData.history,
+                verificationToken: formData.verificationToken
             };
-            const response = await registerUser(userData);
-
-            alert("Registration successful! Please check your email to verify your account before logging in.");
+            await registerUser(userData);
+            alert("Registration complete! You can now log in.");
             navigate('/login');
         } catch (error) {
-            console.error("Full Registration Error Details:", {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status,
-                config: error.config
-            });
             alert(error.response?.data?.message || "Registration failed. Please try again.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -108,9 +180,59 @@ const Register = () => {
                                 />
                             </div>
                         </div>
+                        <button type="button" onClick={handleNextStep1} disabled={isLoading} className="btn btn-primary w-full mt-4">
+                            {isLoading ? <Loader2 className="animate-spin" size={20} /> : "Verify Email"} <ArrowRight size={18} />
+                        </button>
                     </>
                 );
             case 2:
+                return (
+                    <>
+                        <div className="mb-4 text-center">
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                                We sent a 6-digit code to <strong>{formData.email}</strong>
+                            </p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginBottom: '1.5rem' }}>
+                                {otp.map((digit, index) => (
+                                    <input
+                                        key={index}
+                                        ref={el => otpRefs.current[index] = el}
+                                        type="text"
+                                        maxLength="1"
+                                        value={digit}
+                                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                        onPaste={index === 0 ? handleOtpPaste : undefined}
+                                        style={{
+                                            width: '100%',
+                                            aspectRatio: '1',
+                                            textAlign: 'center',
+                                            fontSize: '1.5rem',
+                                            fontWeight: '600',
+                                            color: 'var(--text-primary)',
+                                            background: '#f8fafc',
+                                            border: '2px solid #e2e8f0',
+                                            borderRadius: '8px',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => { e.target.style.borderColor = 'var(--primary-color)'; e.target.style.background = '#ffffff'; }}
+                                        onBlur={(e) => { if (!e.target.value) { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; } }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                            <button type="button" onClick={handleBack} disabled={isLoading} className="btn" style={{ flex: 1, background: 'white', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
+                                <ArrowLeft size={18} /> Edit Email
+                            </button>
+                            <button type="button" onClick={handleNextStep2} disabled={isLoading || otp.join('').length !== 6} className="btn btn-primary" style={{ flex: 1 }}>
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : "Verify Code"} <Check size={18} />
+                            </button>
+                        </div>
+                    </>
+                );
+            case 3:
                 return (
                     <>
                         <div className="mb-4">
@@ -173,9 +295,12 @@ const Register = () => {
                                 />
                             </div>
                         </div>
+                        <button type="button" onClick={handleNextStep3} className="btn btn-primary w-full mt-4">
+                            Continue <ArrowRight size={18} />
+                        </button>
                     </>
                 );
-            case 3:
+            case 4:
                 return (
                     <>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mb-4">
@@ -188,7 +313,7 @@ const Register = () => {
                                         placeholder="Your age"
                                         className="input-field"
                                         style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0' }}
-                                        value={formData.age} onChange={handleChange} required
+                                        value={formData.age} onChange={handleChange}
                                     />
                                 </div>
                             </div>
@@ -200,10 +325,10 @@ const Register = () => {
                                     style={{ background: '#f8fafc', borderColor: '#e2e8f0' }}
                                     value={formData.gender} onChange={handleChange}
                                 >
-                                    <option value="select">Select</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
                                 </select>
                             </div>
                         </div>
@@ -219,6 +344,14 @@ const Register = () => {
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>You can add details later in your profile</span>
                             </label>
                         </div>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                            <button type="button" onClick={handleBack} disabled={isLoading} className="btn" style={{ flex: 1, background: 'white', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
+                                <ArrowLeft size={18} /> Back
+                            </button>
+                            <button type="submit" disabled={isLoading} className="btn btn-primary" style={{ flex: 1 }}>
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <><Check size={18} /> Create Account</>}
+                            </button>
+                        </div>
                     </>
                 );
             default:
@@ -229,7 +362,6 @@ const Register = () => {
     return (
         <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
 
-            {/* Logo Section */}
             <div className="text-center" style={{ marginBottom: '2rem' }}>
                 <div style={{
                     width: '64px', height: '64px', background: 'var(--primary-gradient)',
@@ -241,19 +373,16 @@ const Register = () => {
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0', color: 'var(--text-primary)' }}>QuickDiagnosis</h1>
             </div>
 
-            <div className="card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem', background: 'white', border: 'none', boxShadow: 'var(--shadow-custom, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1))' }}>
+            <div className="card" style={{ maxWidth: '450px', width: '100%', padding: '2.5rem', background: 'white', border: 'none', boxShadow: 'var(--shadow-custom, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1))' }}>
 
-                {/* Progress Header */}
                 <div style={{ marginBottom: '2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                        {step > 1 && <ArrowLeft size={16} style={{ cursor: 'pointer' }} onClick={handleBack} />}
-                        <span>Step {step} of 3</span>
+                        <span>Step {step} of 4</span>
                     </div>
-                    {/* Progress Bar */}
                     <div style={{ height: '6px', background: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{
                             height: '100%',
-                            width: `${(step / 3) * 100}%`,
+                            width: `${(step / 4) * 100}%`,
                             background: 'var(--primary-gradient)',
                             transition: 'width 0.3s ease'
                         }}></div>
@@ -263,36 +392,20 @@ const Register = () => {
                 <div className="mb-4">
                     <h2 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                         {step === 1 && "Create your account"}
-                        {step === 2 && "Secure your account"}
-                        {step === 3 && "Personal information"}
+                        {step === 2 && "Verify your email"}
+                        {step === 3 && "Secure your account"}
+                        {step === 4 && "Personal information"}
                     </h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
                         {step === 1 && "Enter your basic information to get started"}
-                        {step === 2 && "Choose a strong password to protect your health data"}
-                        {step === 3 && "Help us personalize your experience"}
+                        {step === 2 && "Enter the 6-digit code sent to your email"}
+                        {step === 3 && "Choose a strong password to protect your health data"}
+                        {step === 4 && "Help us personalize your experience"}
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit}>
                     {renderStepContent()}
-
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                        {step > 1 && (
-                            <button type="button" onClick={handleBack} className="btn" style={{ flex: 1, background: 'white', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
-                                <ArrowLeft size={18} /> Back
-                            </button>
-                        )}
-
-                        {step < 3 ? (
-                            <button type="button" onClick={handleNext} className="btn btn-primary" style={{ flex: 1 }}>
-                                Continue <ArrowRight size={18} />
-                            </button>
-                        ) : (
-                            <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                                <Check size={18} /> Create Account
-                            </button>
-                        )}
-                    </div>
                 </form>
 
             </div>

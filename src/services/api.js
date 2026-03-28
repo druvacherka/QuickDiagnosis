@@ -21,9 +21,13 @@ api.interceptors.request.use(
     }
 );
 
-export const predictDisease = async (symptoms) => {
+export const predictDisease = async (symptoms, confirmedSymptoms = null) => {
     try {
-        const response = await api.post('/predict', { symptoms });
+        const body = { symptoms };
+        if (confirmedSymptoms && confirmedSymptoms.length > 0) {
+            body.confirmedSymptoms = confirmedSymptoms;
+        }
+        const response = await api.post('/predict', body);
         return response.data;
     } catch (error) {
         console.error('Prediction API Error:', error);
@@ -108,6 +112,36 @@ export const loginUser = async (credentials) => {
         return response.data;
     } catch (error) {
         console.error('Login API Error:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const updateProfile = async (profileData) => {
+    try {
+        const response = await api.put('/auth/profile', profileData);
+        return response.data;
+    } catch (error) {
+        console.error('Update Profile API Error:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const sendOtp = async (email, name) => {
+    try {
+        const response = await api.post('/auth/send-otp', { email, name });
+        return response.data;
+    } catch (error) {
+        console.error('Send OTP API Error:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const verifyOtpInitial = async (email, otp) => {
+    try {
+        const response = await api.post('/auth/verify-otp-initial', { email, otp });
+        return response.data;
+    } catch (error) {
+        console.error('Verify OTP Initial API Error:', error.response ? error.response.data : error.message);
         throw error;
     }
 };

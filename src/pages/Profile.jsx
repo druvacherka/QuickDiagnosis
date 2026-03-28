@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Calendar, Ruler, Weight, Droplets, Activity, Save, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { updateProfile } from '../services/api';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -24,20 +25,24 @@ const Profile = () => {
         setDetails(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
         setIsSaving(true);
+        setMessage({ type: '', text: '' });
 
-        const updatedUser = { ...user, ...details };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-
-        setTimeout(() => {
+        try {
+            const updatedUserData = await updateProfile(details);
+            localStorage.setItem('user', JSON.stringify(updatedUserData));
+            setUser(updatedUserData);
+            
             setIsSaving(false);
             setIsEditing(false);
             setMessage({ type: 'success', text: 'Profile updated successfully!' });
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-        }, 800);
+        } catch (error) {
+            setIsSaving(false);
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile. Please try again.' });
+        }
     };
 
     const toggleEdit = () => {

@@ -98,17 +98,18 @@ router.get('/symptoms', (req, res) => {
 // POST /api/predict
 router.post('/predict', async (req, res) => {
     try {
-        const { symptoms } = req.body;
+        const { symptoms, confirmedSymptoms } = req.body;
         console.log('POST /predict received with symptoms:', symptoms);
 
         if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
             return res.status(400).json({ error: 'Symptoms array is required.' });
         }
 
-        const response = mlService.predictDisease(symptoms);
-        console.log(`Generated prediction for ${symptoms.length} symptoms.`);
+        // confirmedSymptoms is optional – only present on the final (post-questionnaire) call
+        const response = mlService.predictDisease(symptoms, confirmedSymptoms || null);
+        console.log(`Generated prediction for ${symptoms.length} symptoms${confirmedSymptoms ? ` (+ ${confirmedSymptoms.length} confirmed via questionnaire)` : ''}.`);
 
-        // Return object { predictions: [], followUp: {} }
+        // Return object { predictions: [], followUp: {}, followUpCandidates: [] }
         res.json(response);
 
     } catch (error) {

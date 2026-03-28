@@ -135,6 +135,26 @@ const Hospitals = () => {
                     </div>
                 )}
 
+                {/* Fallback Warning Triggered by AI Empty filtering */}
+                {!loading && !error && hospitals.fallbackMessage && (
+                    <div style={{
+                        padding: '1rem',
+                        backgroundColor: '#fffbeb',
+                        border: '1px solid #fde68a',
+                        borderRadius: 'var(--border-radius-md)',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '12px',
+                        color: '#b45309',
+                        marginTop: '-0.5rem'
+                    }}>
+                        <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>
+                            {hospitals.fallbackMessage}
+                        </span>
+                    </div>
+                )}
+
                 {!loading && !error && (!hospitals.hospitals || hospitals.hospitals.length === 0) && (
                     <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
                         <MapPin size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
