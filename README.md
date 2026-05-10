@@ -353,12 +353,7 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
 
-This project is open source under the [ISC License](https://opensource.org/licenses/ISC).
-
----
-
-<p align="center">
+<!-- <p align="center">
   Built with ❤️ by <a href="https://github.com/druvacherka">druvacherka</a>
-</p>
+</p> -->
