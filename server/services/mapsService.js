@@ -62,18 +62,19 @@ const filterHospitalsWithChatGPT = async (hospitals, disease, specialist) => {
 const getNearbyPlaces = async (lat, lng, type = 'hospital', apiKey, specialty = '', disease = '') => {
     try {
         const specialistToSearch = getSpecialistForDisease(disease);
-        const radius = 5000; // 5km radius to prevent timeouts
+        const radius = 10000; // 10km radius as requested
+        const searchTimeout = 30000; // Increased to 30s to handle larger area search and slow OSM servers
 
-        // OpenStreetMap Overpass search - optimized for speed
+        // OpenStreetMap Overpass search - optimized for speed and results
         const query = `
-            [out:json][timeout:15];
+            [out:json][timeout:25];
             (
               node["amenity"="hospital"](around:${radius},${lat},${lng});
               way["amenity"="hospital"](around:${radius},${lat},${lng});
               node["amenity"="clinic"](around:${radius},${lat},${lng});
               way["amenity"="clinic"](around:${radius},${lat},${lng});
             );
-            out center 20;
+            out center 30; 
         `;
 
         let response;
@@ -83,7 +84,7 @@ const getNearbyPlaces = async (lat, lng, type = 'hospital', apiKey, specialty = 
                     'Content-Type': 'text/plain',
                     'User-Agent': 'QuickDiagnosis/1.0 (Contact: quickdiagnosisservice@gmail.com)'
                 },
-                timeout: 8000
+                timeout: searchTimeout
             });
         } catch (primaryErr) {
             console.warn("Primary Overpass failed, trying mirror...", primaryErr.message);
@@ -93,27 +94,38 @@ const getNearbyPlaces = async (lat, lng, type = 'hospital', apiKey, specialty = 
                         'Content-Type': 'text/plain',
                         'User-Agent': 'QuickDiagnosis/1.0 (Contact: quickdiagnosisservice@gmail.com)'
                     },
-                    timeout: 8000
+                    timeout: searchTimeout
                 });
             } catch (mirrorErr) {
                 console.warn("Overpass mirror also failed. Falling back to rock-solid Nominatim API...", mirrorErr.message);
                 const nomResponse = await axios.get(NOMINATIM_URL, {
-                    params: { q: 'hospital', format: 'json', lat, lon: lng, limit: 15 },
+                    params: { q: 'hospital', format: 'json', lat, lon: lng, limit: 30 },
                     headers: { 'User-Agent': 'QuickDiagnosis/1.0 (Contact: quickdiagnosisservice@gmail.com)' },
-                    timeout: 8000
+                    timeout: searchTimeout
                 });
                 
                 // Mock the Overpass response structure so downstream code still works perfectly
                 response = {
                     data: {
-                        elements: nomResponse.data.map(el => ({
-                            id: el.place_id,
-                            center: { lat: parseFloat(el.lat), lon: parseFloat(el.lon) },
-                            tags: {
-                                name: el.name || 'Medical Facility',
-                                'addr:street': el.display_name.split(',')[0] || ''
+                        elements: nomResponse.data.map(el => {
+                            // Nominatim's display_name usually starts with the name. 
+                            // If name is generic "hospital", try to use the first part of display_name that isn't just "hospital"
+                            const nameParts = el.display_name.split(',').map(s => s.trim());
+                            let detectedName = el.name || 'Medical Facility';
+                            
+                            if (!el.name || el.name.toLowerCase() === 'hospital' || el.name.toLowerCase() === 'clinic') {
+                                detectedName = nameParts[0] !== el.name ? nameParts[0] : (nameParts[1] || 'Medical Facility');
                             }
-                        }))
+
+                            return {
+                                id: el.place_id,
+                                center: { lat: parseFloat(el.lat), lon: parseFloat(el.lon) },
+                                tags: {
+                                    name: detectedName,
+                                    'addr:street': nameParts.slice(1, 3).join(', ') || ''
+                                }
+                            };
+                        })
                     }
                 };
             }
@@ -123,12 +135,32 @@ const getNearbyPlaces = async (lat, lng, type = 'hospital', apiKey, specialty = 
 
         let results = elements.map(el => {
             const loc = el.center || el;
+            const tags = el.tags || {};
+            
+            // Priority: Name -> Brand -> Operator -> Official Name -> Default
+            let name = tags.name || tags.brand || tags.operator || tags.official_name || 'Medical Facility';
+            
+            // If the name is just "Hospital" or "Clinic", see if we have other identifying tags
+            if (name.toLowerCase() === 'hospital' || name.toLowerCase() === 'clinic') {
+                name = tags.brand || tags.operator || tags.official_name || name;
+            }
+
+            // Combine address tags for a fuller vicinity
+            const addrParts = [
+                tags['addr:street'],
+                tags['addr:suburb'],
+                tags['addr:locality'],
+                tags['addr:city']
+            ].filter(part => !!part);
+            
+            const vicinity = addrParts.length > 0 ? addrParts.join(', ') : 'Nearby Area';
+
             return {
                 id: el.id,
-                name: el.tags?.name || 'Medical Facility',
-                vicinity: el.tags?.['addr:street'] || el.tags?.['addr:city'] || 'Nearby Area',
+                name: name,
+                vicinity: vicinity,
                 geometry: { location: { lat: loc.lat, lng: loc.lon } },
-                distance: getDistanceFromLatLonInKm(lat, lng, loc.lat, loc.lon)
+                distance: parseFloat(getDistanceFromLatLonInKm(lat, lng, loc.lat, loc.lon).toFixed(1))
             };
         });
 
@@ -136,26 +168,42 @@ const getNearbyPlaces = async (lat, lng, type = 'hospital', apiKey, specialty = 
         let cleanResults = deduplicatePlaces(results);
         let originalResults = [...cleanResults];
 
-        if (disease) {
-            cleanResults = await filterHospitalsWithChatGPT(cleanResults, disease, specialistToSearch);
+        if (disease && cleanResults.length > 0) {
+            // Limit candidates for ChatGPT to avoid extremely long prompts and timeouts
+            const topCandidates = cleanResults.slice(0, 15);
+            cleanResults = await filterHospitalsWithChatGPT(topCandidates, disease, specialistToSearch);
         }
 
         let isFallback = false;
         if (cleanResults.length === 0 && disease) {
-            cleanResults = originalResults;
+            // Filter originalResults to only include "general" hospitals/clinics if specialized ones are missing.
+            // This prevents specialized-only clinics (dental, eye, etc.) from clogging the fallback list.
+            cleanResults = originalResults.filter(h => {
+                const name = h.name.toLowerCase();
+                const isTooSpecialized = name.includes('dental') || name.includes('dentist') || name.includes('skin') || 
+                                       name.includes('hair') || name.includes('eye') || name.includes('yoga') || 
+                                       name.includes('physiotherapy') || name.includes('fertility') || name.includes('ayurved') ||
+                                       name.includes('homeopath') || name.includes('optical');
+                
+                // Keep if it is not obviously specialized, or if it explicitly says "Hospital", "Medical Center", etc.
+                return !isTooSpecialized || name.includes('hospital') || name.includes('medical center') || name.includes('nursing home') || name.includes('clinic');
+            });
+            
+            // If the filtered fallback is still empty, return nothing to avoid showing irrelevant results.
             isFallback = true;
         }
 
         // Sort by closest distance
         cleanResults.sort((a, b) => a.distance - b.distance);
 
-        const top5Hospitals = cleanResults.slice(0, 5);
+        // Filter and display TOP 5 hospitals within the 10km radius
+        const hospitalsInRadius = cleanResults.filter(h => h.distance <= 10).slice(0, 5);
 
         return {
             disease: disease || 'General Inquiry',
             specialist: specialistToSearch,
-            hospitals: top5Hospitals,
-            fallbackMessage: isFallback ? `No specialized ${specialistToSearch} facilities found nearby. Showing closest general hospitals.` : null
+            hospitals: hospitalsInRadius,
+            fallbackMessage: isFallback ? `No specialized ${specialistToSearch} facilities found within 10km. Showing closest general hospitals.` : null
         };
 
     } catch (error) {

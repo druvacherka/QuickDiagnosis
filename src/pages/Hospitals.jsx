@@ -39,9 +39,16 @@ const Hospitals = () => {
 
                         try {
                             const data = await getNearbyPlaces(latitude, longitude, 'hospital', disease);
-                            if (isMounted) setHospitals(data);
+                            if (isMounted) {
+                                if (data.error) {
+                                    setError(data.error);
+                                } else {
+                                    setHospitals(data);
+                                    setError(null);
+                                }
+                            }
                         } catch (apiErr) {
-                            if (isMounted) setError("Failed to connect to search service.");
+                            if (isMounted) setError("Failed to connect to search service. Please check your internet connection.");
                         } finally {
                             if (isMounted) setLoading(false);
                         }
@@ -78,10 +85,14 @@ const Hospitals = () => {
                 setUserLocation(coords);
                 setUserAddress(address);
                 const data = await getNearbyPlaces(coords.lat, coords.lng, 'hospital', disease);
-                setHospitals(data);
-                setError(null);
+                if (data.error) {
+                    setError(data.error);
+                } else {
+                    setHospitals(data);
+                    setError(null);
+                }
             } catch (err) {
-                alert("Could not find location.");
+                setError("Could not find address location or verify nearby hospitals.");
             } finally {
                 setLoading(false);
             }
@@ -168,9 +179,13 @@ const Hospitals = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {!loading && !error && hospitals.hospitals && hospitals.hospitals.map((hospital, index) => (
                         <div key={hospital.place_id || index} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>{hospital.name}</h3>
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '0.5rem 0' }}>{hospital.vicinity}</p>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>{hospital.name}</h3>
+                                </div>
+                                {hospital.vicinity && hospital.vicinity !== hospital.name && (
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '0.5rem 0' }}>{hospital.vicinity}</p>
+                                )}
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
